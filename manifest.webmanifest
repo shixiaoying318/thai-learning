@@ -1,0 +1,15 @@
+{
+  "name": "เรียนไทย · 泰语学习面板",
+  "short_name": "泰语学习",
+  "description": "零基础泰语自学面板：字母表、词库手写板、组字练习、文章跟读、自动学习计时",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1d1109",
+  "theme_color": "#1d1109",
+  "icons": [
+    { "src": "./icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+  ]
+}
