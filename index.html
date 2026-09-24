@@ -170,8 +170,11 @@ input:focus,textarea:focus{border-color:var(--gold-dim)}
 .wcard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px;
   position:relative;transition:transform .16s,border-color .16s;animation:rise .3s ease both}
 .wcard:hover{transform:translateY(-3px);border-color:var(--gold-dim)}
-.wcard.known{opacity:.55}
-.wcard.known::after{content:"✓ 已掌握";position:absolute;top:12px;right:12px;font-size:11px;color:var(--jade);font-weight:600}
+.wcard.known{opacity:.78;border-color:rgba(79,182,143,.38)}
+.wcard.known:hover{border-color:rgba(79,182,143,.6)}
+.wcard .ktag{display:inline-block;margin-left:8px;padding:1.5px 9px;border:1px solid rgba(79,182,143,.45);
+  border-radius:999px;background:rgba(79,182,143,.10);color:var(--jade);font-size:10.5px;font-weight:600;
+  letter-spacing:.5px;vertical-align:1px;white-space:nowrap}
 .wcard .top{display:flex;align-items:center;gap:10px}
 .wcard .thai{font-size:27px;font-weight:800;color:var(--gold-soft);letter-spacing:.5px;flex:1;word-break:break-all}
 .playbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--gold-dim);cursor:pointer;flex-shrink:0;
@@ -187,6 +190,7 @@ input:focus,textarea:focus{border-color:var(--gold-dim)}
 .wcard .kn{position:absolute;bottom:12px;right:12px;border:1px solid var(--line);background:transparent;
   color:var(--mute);border-radius:8px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit}
 .wcard .kn:hover{color:var(--jade);border-color:var(--jade)}
+.wcard .kn.on{color:var(--jade);border-color:rgba(79,182,143,.45);background:rgba(79,182,143,.08)}
 .tts-note{margin-top:18px;font-size:12px;color:var(--mute);line-height:1.7}
 .tts-note b{color:var(--ink)}
 
@@ -1049,16 +1053,16 @@ function renderDeck(){
     (curCat==="全部"||r[0]===curCat)&&(!hide||!state.known.includes(r[1])));
   document.getElementById("dkSub").textContent=
     `显示 ${rows.length} / ${DECK.length} 词 · 已掌握 ${state.known.length}`;
-  document.getElementById("cards").innerHTML=rows.map(({r,i})=>`
-    <div class="wcard ${state.known.includes(r[1])?"known":""}" style="animation-delay:${Math.min(i%20*22,300)}ms;cursor:pointer"
+  document.getElementById("cards").innerHTML=rows.map(({r,i})=>{const kn=state.known.includes(r[1]);return `
+    <div class="wcard ${kn?"known":""}" style="animation-delay:${Math.min(i%20*22,300)}ms;cursor:pointer"
       title="点卡片 = 手写板：笔顺演示 + 四线描红" onclick="openWordIdx(${i})">
       <div class="top"><div class="thai">${r[1]}</div>
         <button class="playbtn" id="pb${i}" onclick="event.stopPropagation();speak('${r[1]}','pb${i}')">▶</button></div>
-      <div class="ipa">${r[2]}</div>
+      <div class="ipa">${r[2]}${kn?'<span class="ktag">✓ 已掌握</span>':""}</div>
       <div class="zh">${r[3]}<small>${r[4]}</small></div>
       ${r[5]!=="—"?`<div class="ex"><span class="thai">${r[5]}</span></div>`:""}
-      <button class="kn" onclick="event.stopPropagation();toggleKnown('${r[1]}')">${state.known.includes(r[1])?"取消掌握":"标记掌握"}</button>
-    </div>`).join("");
+      <button class="kn ${kn?"on":""}" onclick="event.stopPropagation();toggleKnown('${r[1]}')">${kn?"取消掌握":"标记掌握"}</button>
+    </div>`}).join("");
 }
 function toggleKnown(w){
   const k=state.known.indexOf(w);
