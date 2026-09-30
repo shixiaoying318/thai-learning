@@ -28,7 +28,50 @@
   --line:rgba(242,169,59,.16);
   --shadow:0 10px 30px rgba(0,0,0,.35);
   --r:14px;
+  /* 语义类别色：印刷带圈 / 无圈社媒 / 广告声调 / 成功 */
+  --c-print:#7fd8b0; --c-phone:#8fc0e8; --c-disp:#e8937f; --c-ok:#8fe0bd;
+  --card-end:#241509;
+  --sel-grad:linear-gradient(160deg,#3a2610,#2b1a0c);
 }
+
+/* ============ 浅色主题（2026-09-30） ============
+   页面默认是深色（夜间学习）；浅色给白天 / 明亮房间 / 打印用。
+   只覆盖变量，组件 CSS 全部走 var()，故一处切换全局生效。
+   类别色换成深一档，保证在米白底上仍有足够对比度。 */
+body.light{
+  --bg:#f5eddd; --panel:#fdf8ec; --panel2:#f2e7cf;
+  --gold:#b06f14; --gold-soft:#8a5410; --gold-dim:rgba(176,111,20,.32);
+  --cream:#3b2d1a; --ink:#5c4a33; --mute:#8b7457;
+  --jade:#177a58; --crimson:#bb4229;
+  --line:rgba(150,105,40,.24);
+  --shadow:0 8px 24px rgba(120,90,40,.16);
+  --c-print:#146b4e; --c-phone:#2b6ba4; --c-disp:#a8452f; --c-ok:#146b4e;
+  --sel-grad:linear-gradient(160deg,#f1e0ba,#e7d0a0);
+  --card-end:#ead9b4;
+  background-image:
+    radial-gradient(1100px 500px at 85% -10%, rgba(176,111,20,.08), transparent 60%),
+    radial-gradient(800px 420px at -10% 20%, rgba(187,66,41,.06), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(150,105,40,.02) 0 2px, transparent 2px 9px);
+}
+/* 浅色下金字按钮上的深棕字改为更深的近黑棕，保证对比 */
+body.light .fc-go,body.light .bd-play{color:#20130a}
+/* 主题切换钮：固定右上角，避开左上「回首页」。三态循环 自动→浅色→深色 */
+.themeBtn{position:fixed;top:14px;right:16px;z-index:60;width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--line);background:var(--panel);color:var(--gold-soft);font-size:19px;
+  cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,background .2s}
+.themeBtn:hover{transform:scale(1.08)}
+@media (max-width:640px){.themeBtn{top:10px;right:10px;width:38px;height:38px;font-size:17px}}
+/* 浅色下的半透明内衬：深色版用 rgba(0,0,0,.15~.35) 做内凹感，浅色换成暖棕浅内衬。
+   弹窗黑幕(.pm-mask/.info-mask/.fc-mask)与 .pm-box 之外的遮罩保持深色，两主题一致。 */
+body.light .stat,body.light .sprint,body.light .entry,body.light .tc-task,
+body.light .bdg,body.light .alvchip,body.light .artzh,body.light .bd-slot{background:rgba(120,88,40,.08)}
+body.light textarea,body.light .pm-btns button,body.light .artbar button,
+body.light .bd-built,body.light .fc-btns button,body.light .fc-acts button{background:rgba(120,88,40,.10)}
+body.light .bdg.on,body.light .bd-ans.on{background:rgba(120,88,40,.16)}
+body.light .bar{background:rgba(120,88,40,.14)}
+body.light .pm-box{background:var(--panel)}
+
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
@@ -47,7 +90,7 @@ h1,h2,h3,.num{font-family:'Prompt','Sarabun','Microsoft YaHei',sans-serif}
 /* ---------- header ---------- */
 header{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:space-between;
   padding:26px 30px;border:1px solid var(--line);border-radius:var(--r);
-  background:linear-gradient(160deg,var(--panel) 0%,#241509 100%);box-shadow:var(--shadow);position:relative;overflow:hidden}
+  background:linear-gradient(160deg,var(--panel) 0%,var(--card-end) 100%);box-shadow:var(--shadow);position:relative;overflow:hidden}
 header::after{content:"สวัสดี";position:absolute;right:18px;top:-14px;font-size:110px;font-weight:800;
   color:rgba(242,169,59,.055);pointer-events:none;font-family:'Prompt',sans-serif;letter-spacing:-4px}
 .brand .thai{font-size:34px;font-weight:800;color:var(--gold);letter-spacing:1px}
@@ -71,7 +114,7 @@ nav button{
   font-family:inherit;transition:all .18s ease}
 nav button small{display:block;font-size:11px;color:var(--mute);font-weight:400;margin-top:3px}
 nav button:hover{border-color:var(--gold-dim);transform:translateY(-2px)}
-nav button.on{background:linear-gradient(160deg,#3a2610,#2b1a0c);color:var(--gold);border-color:var(--gold-dim);
+nav button.on{background:var(--sel-grad);color:var(--gold);border-color:var(--gold-dim);
   box-shadow:0 6px 18px rgba(242,169,59,.12)}
 nav button.on small{color:var(--ink)}
 section{display:none}
@@ -239,7 +282,7 @@ footer .thai{color:var(--gold-dim);font-size:14px}
 .live.off{background:var(--mute);animation:none}
 @keyframes trkPulse{0%,100%{opacity:1}50%{opacity:.3}}
 /* 极简落地：hero 只回答「现在学什么」，计划与里程碑收进 planBox 折叠区 */
-.hero{border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(160deg,var(--panel) 0%,#221408 100%);
+.hero{border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(160deg,var(--panel) 0%,var(--card-end) 100%);
   box-shadow:var(--shadow);padding:28px 20px 24px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden}
 .hero::after{content:"สู้ๆ";position:absolute;right:14px;bottom:-18px;font-size:74px;font-weight:800;
   color:rgba(242,169,59,.05);pointer-events:none;font-family:'Prompt',sans-serif}
@@ -383,9 +426,9 @@ footer .thai{color:var(--gold-dim);font-size:14px}
 .vfi{text-align:center;min-width:32px}
 .vfi .g{display:block;font-size:20px;line-height:1.55;color:var(--ink)}
 .vfi .t{display:block;font-size:9px;color:var(--mute);white-space:nowrap}
-.vfi.print .g{color:#7fd8b0}
-.vfi.phone .g{color:#8fc0e8}
-.vfi.disp .g{color:#e8937f}
+.vfi.print .g{color:var(--c-print)}
+.vfi.phone .g{color:var(--c-phone)}
+.vfi.disp .g{color:var(--c-disp)}
 /* 每格字体变体的图例说明已迁入模块头 ❗ 弹窗（INFO.alpha），页面里不再占一块 */
 body.novar .vfonts{display:none}
 /* 弹窗里的放大对照条：四种字体一字排开 */
@@ -394,7 +437,7 @@ body.novar .vfonts{display:none}
 .pm-vi{text-align:center;min-width:66px;padding:6px 8px;border:1px solid transparent;border-radius:10px}
 .pm-vi.cur{border-color:var(--gold-dim);background:rgba(242,169,59,.08)}
 .pm-vi .g{font-size:36px;line-height:1.5;color:var(--gold-soft)}
-.pm-vi.print .g{color:#7fd8b0}.pm-vi.phone .g{color:#8fc0e8}.pm-vi.disp .g{color:#e8937f}
+.pm-vi.print .g{color:var(--c-print)}.pm-vi.phone .g{color:var(--c-phone)}.pm-vi.disp .g{color:var(--c-disp)}
 .pm-vi .t{font-size:10.5px;color:var(--mute);margin-top:3px}
 /* ================= 组字练习 ================= */
 .bd-card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:18px;margin-top:4px}
@@ -419,7 +462,7 @@ body.novar .vfonts{display:none}
 .bd-prev{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:16px}
 .bd-built{min-width:150px;padding:8px 26px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.25);
   font-family:'Mali','Cordia New','Browallia New',sans-serif;font-size:52px;font-weight:800;color:var(--gold-soft);text-align:center;line-height:1.6}
-.bd-built.ok{border-color:var(--jade);color:#8fe0bd;animation:bdpop .45s ease}
+.bd-built.ok{border-color:var(--jade);color:var(--c-ok);animation:bdpop .45s ease}
 .bd-built.bad{border-color:var(--crimson);animation:bdshake .4s ease}
 .bd-slots{display:flex;gap:8px;flex-wrap:wrap}
 .bd-slot{min-width:76px;padding:8px 10px;border-radius:10px;border:1px dashed var(--line);background:rgba(0,0,0,.15);text-align:center}
@@ -436,12 +479,12 @@ body.novar .vfonts{display:none}
 .bd-tile:disabled{opacity:.45;cursor:default}
 .bd-tile .ch{font-family:'Mali','Cordia New',sans-serif;font-size:27px;font-weight:700;line-height:1.4}
 .bd-tile .nm{font-size:10px;color:var(--mute);white-space:nowrap}
-.bd-tile.cons .ch{color:#8fe0bd}.bd-tile.vow .ch{color:var(--gold-soft)}.bd-tile.ton .ch{color:#e8937f}.bd-tile.fin .ch{color:#8fc0e8}
-.bd-tile.on{border-color:var(--gold);background:linear-gradient(160deg,#3a2610,#2b1a0c);box-shadow:0 0 10px rgba(242,169,59,.25)}
+.bd-tile.cons .ch{color:var(--c-ok)}.bd-tile.vow .ch{color:var(--gold-soft)}.bd-tile.ton .ch{color:var(--c-disp)}.bd-tile.fin .ch{color:var(--c-phone)}
+.bd-tile.on{border-color:var(--gold);background:var(--sel-grad);box-shadow:0 0 10px rgba(242,169,59,.25)}
 .bd-tile.on .nm{color:var(--gold-soft)}
 .bd-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
 .bd-clear{margin:6px 0;text-align:center;padding:30px 20px;border:1px solid var(--jade);border-radius:var(--r);background:rgba(79,182,143,.07)}
-.bd-clear h3{color:#8fe0bd;font-size:20px;margin-bottom:10px}
+.bd-clear h3{color:var(--c-ok);font-size:20px;margin-bottom:10px}
 .bd-clear p{color:var(--ink);font-size:13.5px;line-height:1.9;margin-bottom:16px}
 .bd-clear .goldbtn{margin-right:10px}
 @keyframes bdshake{0%,100%{transform:none}25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
@@ -463,7 +506,7 @@ body.novar .vfonts{display:none}
 .info-box .isec:first-child{margin-top:0;padding-top:0;border-top:none}
 .info-box h5{font-size:12.5px;color:var(--jade);margin-bottom:5px;letter-spacing:1px;font-weight:700}
 .info-box .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px 0 8px;vertical-align:middle}
-.info-box .dot.print{background:#7fd8b0}.info-box .dot.phone{background:#8fc0e8}.info-box .dot.disp{background:#e8937f}
+.info-box .dot.print{background:var(--c-print)}.info-box .dot.phone{background:var(--c-phone)}.info-box .dot.disp{background:var(--c-disp)}
 /* 提示弹窗里的声调规则表：行=辅音类别，列=声调符号 */
 .itab{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
 .itab th,.itab td{border:1px solid var(--line);padding:5px 7px;text-align:center;line-height:1.6}
@@ -511,9 +554,9 @@ body.novar .vfonts{display:none}
 .fc-btns button{flex:1;border-radius:99px;padding:14px 8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
   border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);transition:background .15s,border-color .15s}
 .fc-btns button:disabled{opacity:.45;cursor:default}
-.fc-no{border-color:rgba(212,85,63,.45);color:#e8937f}
+.fc-no{border-color:rgba(212,85,63,.45);color:var(--c-disp)}
 .fc-no:hover:not(:disabled){background:rgba(212,85,63,.16);border-color:var(--crimson)}
-.fc-yes{border-color:rgba(79,182,143,.45);color:#7fd8b0}
+.fc-yes{border-color:rgba(79,182,143,.45);color:var(--c-print)}
 .fc-yes:hover:not(:disabled){background:rgba(79,182,143,.16);border-color:var(--jade)}
 .fc-hint{font-size:11px;color:var(--mute);margin-top:12px;line-height:1.7}
 .fc-hint kbd{border:1px solid var(--line);border-radius:4px;padding:0 4px;font-family:inherit;font-size:10.5px;color:var(--ink)}
@@ -521,9 +564,9 @@ body.novar .vfonts{display:none}
 .fc-rate{font-size:50px;font-weight:800;color:var(--gold-soft);line-height:1.25;font-variant-numeric:tabular-nums}
 .fc-rate small{font-size:15px;color:var(--mute);font-weight:600;margin-left:2px}
 .fc-grade{display:inline-block;margin:4px 0 0;padding:4px 18px;border-radius:99px;font-size:14px;font-weight:700;letter-spacing:1px}
-.fc-grade.S,.fc-grade.A{border:1px solid rgba(79,182,143,.5);background:rgba(79,182,143,.13);color:#7fd8b0}
+.fc-grade.S,.fc-grade.A{border:1px solid rgba(79,182,143,.5);background:rgba(79,182,143,.13);color:var(--c-print)}
 .fc-grade.B,.fc-grade.C{border:1px solid var(--gold-dim);background:rgba(242,169,59,.12);color:var(--gold)}
-.fc-grade.D,.fc-grade.E{border:1px solid rgba(212,85,63,.5);background:rgba(212,85,63,.12);color:#e8937f}
+.fc-grade.D,.fc-grade.E{border:1px solid rgba(212,85,63,.5);background:rgba(212,85,63,.12);color:var(--c-disp)}
 .fc-verdict{font-size:14px;color:var(--ink);font-weight:600;margin-top:10px}
 .fc-advice{font-size:12.5px;color:var(--mute);line-height:1.8;margin-top:5px}
 .fc-split{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:14px 0 0}
@@ -533,7 +576,7 @@ body.novar .vfonts{display:none}
 .fc-wrong h5{font-size:11px;letter-spacing:2px;color:var(--mute);font-weight:600;margin-bottom:9px}
 .fc-wlist{display:flex;flex-wrap:wrap;gap:7px}
 .fc-wi{border:1px solid rgba(212,85,63,.32);background:rgba(212,85,63,.09);border-radius:9px;padding:4px 9px;cursor:pointer;
-  font-family:'Mali','Cordia New',sans-serif;font-weight:700;font-size:21px;color:#e8937f;line-height:1.35;transition:all .15s}
+  font-family:'Mali','Cordia New',sans-serif;font-weight:700;font-size:21px;color:var(--c-disp);line-height:1.35;transition:all .15s}
 .fc-wi:hover{border-color:var(--crimson);background:rgba(212,85,63,.18)}
 .fc-acts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
 .fc-acts button{flex:1;min-width:118px;border-radius:99px;padding:12px 8px;font-size:13px;cursor:pointer;font-family:inherit;
@@ -550,6 +593,7 @@ body.novar .vfonts{display:none}
 <div class="wrap">
 
 <header>
+  <button id="themeBtn" class="themeBtn" onclick="cycleTheme()" title="主题：跟随系统">🌓</button>
   <div class="brand">
     <div class="thai">เรียนไทย</div>
     <h1>泰语学习面板 <span style="color:var(--mute);font-weight:400;font-size:14px">· 生肉泰剧 / 演出 / 旅游</span></h1>
@@ -1307,6 +1351,34 @@ function pickAlpha(v){
   document.getElementById("alphaCons").style.display=v==="cons"?"":"none";
   document.getElementById("alphaVow").style.display=v==="vow"?"":"none";
   renderAlpha();
+}
+/* ============ 主题：自动 / 浅色 / 深色 三态循环 ============
+   state.theme 存用户显式选择；undefined/"auto" = 跟随系统 prefers-color-scheme。
+   只切 body.light 一个类，颜色全部走 CSS 变量，组件无需感知主题。
+   选择随 state 落 localStorage 并参与云同步。 */
+const THEME_ICON={auto:"🌓",light:"☀️",dark:"🌙"};
+const THEME_NAME={auto:"跟随系统",light:"浅色",dark:"深色"};
+function sysPrefLight(){return window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches;}
+function themeMode(){return state.theme==="light"||state.theme==="dark"?state.theme:(sysPrefLight()?"light":"dark");}
+function applyTheme(){
+  const m=themeMode(),cur=state.theme||"auto";
+  document.body.classList.toggle("light",m==="light");
+  const b=document.getElementById("themeBtn");
+  if(b){b.textContent=THEME_ICON[cur];b.title="主题："+THEME_NAME[cur]+"（点击切换）";}
+  const mc=document.querySelector('meta[name="theme-color"]');
+  if(mc)mc.content=m==="light"?"#f5eddd":"#1d1109"; // PWA 状态栏跟主题走
+}
+function cycleTheme(){
+  const order=["auto","light","dark"];
+  state.theme=order[(order.indexOf(state.theme||"auto")+1)%3];
+  save();applyTheme();
+  showToast("主题："+THEME_NAME[state.theme]+(state.theme==="auto"?"（当前 "+(themeMode()==="light"?"浅色":"深色")+"）":""));
+}
+/* 系统主题变化时，处于「自动」态的页面即时跟随；已手动选定则不打扰 */
+if(window.matchMedia){
+  const mq=matchMedia("(prefers-color-scheme: light)");
+  const onSys=()=>{if((state.theme||"auto")==="auto")applyTheme();};
+  if(mq.addEventListener)mq.addEventListener("change",onSys);else if(mq.addListener)mq.addListener(onSys);
 }
 /* 每格字体变体开关：只切 body 类，变体 DOM 一直在，开关即时生效不用重渲染 */
 function varsOn(){return state.vars!==false;}
@@ -2647,6 +2719,7 @@ function renderHeatmap(){
 function renderAll(){renderRoad();renderLog();renderDeck();renderAlpha();renderBuild();renderRead();refreshStats();tab(state.activeTab||"road");}
 document.getElementById("inDate").value=todayStr();
 if("speechSynthesis" in window)speechSynthesis.getVoices();
+applyTheme(); // 主题要在首帧前落地，避免深色闪一下再切浅色
 renderAll();
 
 /* ============ 云同步层（未配置/未登录时自动降级为纯本地） ============ */
