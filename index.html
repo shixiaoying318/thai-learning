@@ -472,6 +472,77 @@ body.novar .vfonts{display:none}
 .itab td.c.mid{color:var(--gold)}.itab td.c.high{color:var(--crimson)}.itab td.c.low{color:var(--jade)}
 .itab .thai{font-size:14px;color:var(--gold-soft)}
 @media(max-width:560px){.info-box{padding:18px 16px}.itab{font-size:10.5px}.itab th,.itab td{padding:4px 3px}}
+
+/* ---------- 字母抽认卡：范围选择 → 逐题认读 → 认识率与熟悉度评分 ----------
+   z-index 110 刻意压在摹写弹窗(120)与说明弹窗(130)之下：答「不认识」时详情弹窗
+   直接盖在抽认卡上面，关掉详情就回到原位置继续，不用重新开一轮 */
+.fc-mask{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:110;display:none;align-items:center;justify-content:center;padding:16px}
+.fc-mask.on{display:flex}
+.fc-box{position:relative;width:100%;max-width:452px;max-height:92vh;overflow:auto;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 20px;box-shadow:var(--shadow);text-align:center}
+.fc-box h3{font-size:16.5px;color:var(--gold-soft);letter-spacing:1.5px}
+.fc-tip{font-size:12px;color:var(--mute);line-height:1.75;margin:8px 0 16px}
+.fc-tip b{color:var(--ink);font-weight:600}
+.fc-scopes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.fc-go{width:100%;border:none;border-radius:99px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  background:linear-gradient(160deg,var(--gold),#d98d1e);color:#2a1804;transition:filter .15s}
+.fc-go:hover{filter:brightness(1.09)}
+.fc-last{font-size:11.5px;color:var(--mute);margin-top:13px;line-height:1.7}
+.fc-last b{color:var(--ink)}
+/* 答题态 */
+.fc-prog{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--mute);margin-bottom:13px;white-space:nowrap}
+.fc-prog .ok{color:var(--jade)}
+.fc-bar{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.fc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#d98d1e);transition:width .25s}
+.fc-stage{position:relative;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:24px 12px 14px;margin-bottom:15px}
+.fc-type{position:absolute;top:9px;left:11px;font-size:10px;letter-spacing:1.5px;color:var(--mute);
+  border:1px solid var(--line);border-radius:99px;padding:2px 9px}
+.fc-char{font-family:'Mali','Cordia New',sans-serif;font-weight:700;color:var(--gold-soft);line-height:1.45;
+  overflow-wrap:anywhere;animation:fcpop .2s ease both}
+@keyframes fcpop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+/* 答案区预留两行高度：作答前后卡片不跳位，按钮位置稳定 */
+.fc-ans{min-height:44px;font-size:12.5px;color:var(--ink);line-height:1.7;margin-top:8px}
+.fc-ans .thai{color:var(--gold-soft)}
+.fc-ans .cls{display:inline-block;font-size:10.5px;letter-spacing:1px;border:1px solid var(--line);
+  border-radius:99px;padding:1px 8px;margin-bottom:4px;color:var(--mute)}
+.fc-ans .mk{font-weight:700;margin-right:4px}
+.fc-ans .mk.y{color:var(--jade)}.fc-ans .mk.n{color:var(--crimson)}
+.fc-btns{display:flex;gap:10px}
+.fc-btns button{flex:1;border-radius:99px;padding:14px 8px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);transition:background .15s,border-color .15s}
+.fc-btns button:disabled{opacity:.45;cursor:default}
+.fc-no{border-color:rgba(212,85,63,.45);color:#e8937f}
+.fc-no:hover:not(:disabled){background:rgba(212,85,63,.16);border-color:var(--crimson)}
+.fc-yes{border-color:rgba(79,182,143,.45);color:#7fd8b0}
+.fc-yes:hover:not(:disabled){background:rgba(79,182,143,.16);border-color:var(--jade)}
+.fc-hint{font-size:11px;color:var(--mute);margin-top:12px;line-height:1.7}
+.fc-hint kbd{border:1px solid var(--line);border-radius:4px;padding:0 4px;font-family:inherit;font-size:10.5px;color:var(--ink)}
+/* 结算态 */
+.fc-rate{font-size:50px;font-weight:800;color:var(--gold-soft);line-height:1.25;font-variant-numeric:tabular-nums}
+.fc-rate small{font-size:15px;color:var(--mute);font-weight:600;margin-left:2px}
+.fc-grade{display:inline-block;margin:4px 0 0;padding:4px 18px;border-radius:99px;font-size:14px;font-weight:700;letter-spacing:1px}
+.fc-grade.S,.fc-grade.A{border:1px solid rgba(79,182,143,.5);background:rgba(79,182,143,.13);color:#7fd8b0}
+.fc-grade.B,.fc-grade.C{border:1px solid var(--gold-dim);background:rgba(242,169,59,.12);color:var(--gold)}
+.fc-grade.D,.fc-grade.E{border:1px solid rgba(212,85,63,.5);background:rgba(212,85,63,.12);color:#e8937f}
+.fc-verdict{font-size:14px;color:var(--ink);font-weight:600;margin-top:10px}
+.fc-advice{font-size:12.5px;color:var(--mute);line-height:1.8;margin-top:5px}
+.fc-split{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:14px 0 0}
+.fc-pill{font-size:11.5px;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:4px 12px}
+.fc-pill b{color:var(--ink);font-variant-numeric:tabular-nums}
+.fc-wrong{margin:16px 0 0;text-align:left}
+.fc-wrong h5{font-size:11px;letter-spacing:2px;color:var(--mute);font-weight:600;margin-bottom:9px}
+.fc-wlist{display:flex;flex-wrap:wrap;gap:7px}
+.fc-wi{border:1px solid rgba(212,85,63,.32);background:rgba(212,85,63,.09);border-radius:9px;padding:4px 9px;cursor:pointer;
+  font-family:'Mali','Cordia New',sans-serif;font-weight:700;font-size:21px;color:#e8937f;line-height:1.35;transition:all .15s}
+.fc-wi:hover{border-color:var(--crimson);background:rgba(212,85,63,.18)}
+.fc-acts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.fc-acts button{flex:1;min-width:118px;border-radius:99px;padding:12px 8px;font-size:13px;cursor:pointer;font-family:inherit;
+  border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--ink);transition:all .15s}
+.fc-acts button:hover{border-color:var(--gold-dim);color:var(--gold-soft)}
+.fc-acts .pri{border:none;background:linear-gradient(160deg,var(--gold),#d98d1e);color:#2a1804;font-weight:700}
+.fc-acts .pri:hover{filter:brightness(1.09);color:#2a1804}
+@media(max-width:560px){.fc-box{padding:18px 14px 16px}.fc-char{line-height:1.35}.fc-rate{font-size:42px}
+  .fc-btns button{padding:15px 6px}.fc-acts button{min-width:100%}}
 </style>
 </head>
 <body>
@@ -587,8 +658,11 @@ body.novar .vfonts{display:none}
 <!-- ================= 字母表 ================= -->
 <section id="sec-alpha">
   <div class="dk-head">
-    <div><h2>字母表速查 <button class="infoBtn" onclick="openInfo('alpha')" title="字体说明 + 中/高/低辅音声调规则">!</button></h2><div class="sub">点卡 = 单字母音 · ✎ = 四线摹写 · 字体与声调规则在标题旁 ❗</div></div>
-    <button class="varbtn" id="varBtn" onclick="toggleVars()" title="开关：每个辅音卡 / 元音卡的格子里，同时挂上这个字母在其他字体里的写法">🔠 每格字体变体：开</button>
+    <div><h2>字母表速查 <button class="infoBtn" onclick="openInfo('alpha')" title="字体说明 + 中/高/低辅音声调规则">!</button></h2><div class="sub">点卡 = 单字母音 · ✎ = 四线摹写 · 🎴 = 抽认自测 · 字体与声调规则在标题旁 ❗</div></div>
+    <div class="dk-tools">
+      <button class="varbtn" onclick="fcOpen()" title="字母抽认：每轮随机抽 20 个字母，认读自测「认识 / 不认识」；不认识的自动打开详情弹窗，结束给认识率与熟悉度评分">🎴 开始抽认</button>
+      <button class="varbtn" id="varBtn" onclick="toggleVars()" title="开关：每个辅音卡 / 元音卡的格子里，同时挂上这个字母在其他字体里的写法">🔠 每格字体变体：开</button>
+    </div>
     <div class="chips" style="margin:0" id="alphaChips"></div>
   </div>
   <div id="alphaCons"></div>
@@ -656,6 +730,10 @@ body.novar .vfonts{display:none}
     <h3 id="infoTitle"></h3>
     <div class="ibd" id="infoBody"></div>
   </div>
+</div>
+<!-- 字母抽认卡弹窗：三个视图（范围选择 / 答题 / 结算）都由 fcRender* 动态渲染进 #fcBox -->
+<div class="fc-mask" id="fcMask" onclick="if(event.target===this)fcClose()">
+  <div class="fc-box" id="fcBox"></div>
 </div>
 <div id="toast"></div>
 </div>
@@ -1369,8 +1447,19 @@ function pmOpen(info){
   pmClear();pmPlay();
   if(info.say){try{info.say();}catch(e){}} // 打开即自动发音
 }
-function pmClose(){document.getElementById("pmMask").classList.remove("on");pmCur=null;}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){pmClose();closeInfo();}});
+function pmClose(){document.getElementById("pmMask").classList.remove("on");pmCur=null;fcAfterDetail();}
+/* 键盘：Esc 只关最上面那一层（详情 → 说明 → 抽认），不再一次全关；
+   抽认答题时 ← = 不认识、→ = 认识，桌面端可以不打鼠标刷完一轮 */
+document.addEventListener("keydown",e=>{
+  const on=id=>document.getElementById(id).classList.contains("on");
+  if(e.key==="Escape"){
+    if(on("pmMask"))pmClose();else if(on("infoMask"))closeInfo();else if(on("fcMask"))fcClose();
+    return;
+  }
+  if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;
+  if(on("pmMask")||on("infoMask")||!on("fcMask"))return;
+  fcAnswer(e.key==="ArrowRight");
+});
 /* ================= 模块头统一提示（标题旁 ❗ → 弹窗） =================
    原先散落在页面里的长说明块（词库发音说明 / 字母表字体图例 / 组字玩法……）统一收进 INFO：
    模块头保持清爽，想看时点标题旁的 ❗。内容改动只动这一张表 */
@@ -1380,6 +1469,10 @@ const INFO={
     <div class="isec"><h5>发音说明</h5>音频已离线嵌入本页面（微软泰语神经语音），手机无网也能播放；仅当内嵌音频缺失时才回退到网络接口或本地语音合成。机器音声调准确但略机械——真实语感靠泰剧和歌曲喂；个别声调拿不准的词去 <b>thai-language.com</b> 听真人发音。音标为近似 Paiboon 方案，仅供辅助。</div>`},
   alpha:{title:"字母表 · 字体与声调规则",html:`
     <div class="isec"><h5>怎么练</h5>点辅音卡 / 元音卡 = <b>直接听单字母音</b>：辅音统一按「字母+占位 อ」读一个音节（如 ก→กอ、ข→ขอ）；只想听音就点卡片，想进详情（书写演示 + 四线格摹写 + 字体对照）点卡片右上的 <b>✎</b>。<b>进辅音详情弹窗会自动播「字母+代表词」词组音</b>（如 ก ไก่，传统记法帮认读），弹窗里点「🔤 单音」随时切回本音；弹窗点灰色空白处关闭。<br>声调不在这里练：规则看下面的总表，<b>听辨与训练去「组字练习」的关4 · 五调对战</b>（同一声母+元音只换声调符，五调连打）。</div>
+    <div class="isec"><h5>字母抽认（右上 🎴 开始抽认）</h5>认读自测：每轮<b>随机抽 20 个</b>，只给字形，自己判「认识 / 不认识」。范围可选辅音 44 / 元音 25 / 全部 69，以及<b>薄弱</b>（只抽答错过的）。<br>
+      答<b>不认识</b>会直接弹出这个字母的详情页（书写演示 + 四线摹写 + 字体对照），<b>关掉详情就自动进下一题</b>，不用手动操作；答<b>认识</b>闪一下答案（字母名 + 中/高/低 + 含义）继续。桌面端可用键盘：<b>← 不认识 / → 认识 / Esc 退出</b>。<br>
+      结束给<b>认识率</b>和<b>熟悉度评分 S–E</b>（≥95% S · ≥85% A · ≥70% B · ≥50% C · ≥25% D），范围是「全部」时还会分别报辅音 / 元音的命中率；错得集中在某一类辅音（≥3 个）会给出对应的口诀或配对记法。<br>
+      <b>薄弱池</b>：答错累积一次、答对抵消一次，清空即出池。成绩与薄弱池存本机并随登录云同步，换设备接着练。<b>建议节奏</b>：每天一轮全范围 + 一轮只抽薄弱，比一周刷一次整表有效得多。</div>
     <div class="isec"><h5>四线格描红（弹窗手写板）</h5>动画播完会出现淡色引导字，在四线练习条上跟着描红：<b>辅音主体坐基线</b>（第三条线），<b>声调符号 / 上元音进顶区</b>，<b>下元音进底区</b>；红圈 = 起笔头。动画按视觉从左到右逐字母演示，与实际笔顺或略有出入。</div>
     <div class="isec"><h5>字体变体（每格里的小字）</h5>卡片大字 = <b>课本手写体 Mali</b>（带圈手写体，摹写也按它）；下面一行小字 = 同一个字母在其他字体里的写法：
       <i class="dot print"></i>印刷带圈体（公文 / 讲义 / 新闻）
@@ -1638,6 +1731,188 @@ function openTVow(i){
       (fs.length>1?"（下面对照把 "+fs.join(" 和 ")+" 两种写法都排出来了）":""),
     say:()=>speak(r[2])});
 }
+
+/* ================= 字母抽认卡 =================
+   认读自测：每轮随机抽 20 个字母，只给字形，自己认「认识 / 不认识」。
+   答不认识 → 立刻打开该字母的详情弹窗（书写演示 + 四线摹写 + 字体对照），关掉详情自动进下一题；
+   答认识 → 闪一下答案（字母名 + 中/高/低 + 含义）就走，节奏快。
+   结算给认识率 + 熟悉度评分（S–E）+ 错题清单，并按辅音类别诊断「错集中在哪一组」。
+   错题沉淀进薄弱池 state.fc.weak（答对抵消），下轮可直接只抽薄弱的。 */
+const FC_N=20;
+const FC_GRADES=[
+  {min:95,g:"S",v:"字母关基本过了",t:"一眼就能叫出名字，可以安心往拼读规则和课文推进了。"},
+  {min:85,g:"A",v:"很熟，只剩几个死角",t:"把下面错题各点开看一遍，明天再抽一轮就能稳到 S。"},
+  {min:70,g:"B",v:"主体认识，还需巩固",t:"错的集中在少数几组——按下面的诊断专攻那一组，比整表重刷有效。"},
+  {min:50,g:"C",v:"半生不熟",t:"这个阶段最典型的表现是「眼熟但叫不出名」。连着三天每天一轮、只抽薄弱，提升最快。"},
+  {min:25,g:"D",v:"刚起步，别急",t:"泰文字母本来就靠多轮重复。把范围缩到辅音，20 题里同一个字母的复现率更高。"},
+  {min:0, g:"E",v:"先回字母表混眼熟",t:"别硬测。先跟着中辅音口诀把那 9 个念几遍、点几张卡听听音，再来抽。"}
+];
+/* 错题诊断：错最集中的那一类辅音，给对应记法（与 CLASS_META 的口诀呼应） */
+const FC_FIX={
+  "中辅音":"中辅音只有 9 个，是最该先拿下的一组：口诀 <span class=\"thai\">ไก่ จิก เด็ก ตาย บน ปาก โอ่ง</span> 背熟，ก จ ด ต บ ป อ 就全在里面（另两个 ฎ ฏ 少用）。它是声调基准类，五调俱全。",
+  "高辅音":"高辅音 11 个：口诀 <span class=\"thai\">ผี ฝาก ถุง ข้าว สาร ให้ ฉัน</span> 盖住 ผ ฝ ถ ข ศ ษ ส ห，再补记 ฉ ฐ。多为送气音，出气重。",
+  "低辅音":"低辅音 24 个最多，别硬背——和高辅音一一配对记：ข↔ค · ฃ↔ฆ · ฉ↔ช · ฐ↔ฑ · ถ↔ท · ผ↔พ · ฝ↔ฟ · ห↔ฮ。认得高的就能顺出低的。"
+};
+const FC_SCOPE={cons:"辅音",vow:"元音",all:"全部",weak:"薄弱"};
+let fcScope="cons",fcQ=null;
+/* state.fc 不在 ensureSchema 里初始化：导入数据 / 重置后 state 会被整体替换，
+   统一走这个惰性 getter 兜底，任何路径进来都不会读到 undefined */
+function fcSt(){
+  if(!state.fc||typeof state.fc!=="object")state.fc={};
+  const f=state.fc;
+  if(!f.weak||typeof f.weak!=="object")f.weak={};
+  if(!Array.isArray(f.hist))f.hist=[];
+  if(!FC_SCOPE[f.scope])f.scope="cons";
+  return f;
+}
+const fcKey=o=>o.t+"|"+o.i;
+/* 抽认池：t=c 下标指 CONS，t=v 下标指 VOW；薄弱池按累计错次还原成同一结构 */
+function fcPool(scope){
+  const out=[];
+  if(scope==="cons"||scope==="all")CONS.forEach((r,i)=>out.push({t:"c",i,r}));
+  if(scope==="vow"||scope==="all")VOW.forEach((r,i)=>out.push({t:"v",i,r}));
+  if(scope==="weak")for(const k in fcSt().weak){
+    const p=k.split("|");
+    if(p[0]!=="c"&&p[0]!=="v")continue;
+    const arr=p[0]==="c"?CONS:VOW,n=+p[1];
+    if(arr[n])out.push({t:p[0],i:n,r:arr[n]});
+  }
+  return out;
+}
+/* 题面与答案：辅音只给字形，中/高/低是考点之一所以不露；元音给带占位辅音的写法（与字母表一致） */
+function fcFace(o){
+  if(o.t==="c"){const r=o.r;
+    return{ch:r[0],fs:96,type:"辅音",cls:CLASS_META[r[3]].label,
+      ans:`<span class="thai">${r[1]}</span> · ${r[2]}<br>${r[4]}${r[5]==="已废弃"?" · 已废弃，现代泰语用不到":" · 读作 "+r[5]}`};}
+  const r=o.r,n=[...r[1]].length;
+  return{ch:r[1],fs:n<=3?78:n<=5?58:44,type:"元音",cls:r[0]==="A"?"基础元音":"复合 / 特殊元音",
+    ans:`IPA ${r[3]} · ${r[4]}<br>如 <span class="thai">${r[5]}</span>`};
+}
+function fcShuffle(a){
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+function fcOpen(){fcScope=fcSt().scope;fcQ=null;fcRenderStart();document.getElementById("fcMask").classList.add("on");}
+function fcClose(){document.getElementById("fcMask").classList.remove("on");fcQ=null;}
+function fcBack(){fcQ=null;fcRenderStart();}
+
+/* ---------- 视图 1：范围选择 ---------- */
+function fcRenderStart(){
+  const f=fcSt(),wn=Object.keys(f.weak).length,last=f.hist[0];
+  const sc=[["cons","辅音 "+CONS.length],["vow","元音 "+VOW.length],["all","全部 "+(CONS.length+VOW.length)]];
+  if(wn)sc.push(["weak","薄弱 "+wn]);
+  if(!sc.some(x=>x[0]===fcScope))fcScope="cons"; // 薄弱池清空后自动退回辅音
+  const n=Math.min(FC_N,fcPool(fcScope).length);
+  document.getElementById("fcBox").innerHTML=`
+    <h3>🎴 字母抽认</h3>
+    <div class="fc-tip">每轮随机抽 <b>${n}</b> 个字母，只看字形自己认。<br>
+      点 <b>✕ 不认识</b> 会直接打开这个字母的详情页（书写演示 + 字体对照），<b>关掉详情就自动进下一题</b>；<br>
+      点 <b>✓ 认识</b> 闪一下答案继续。答完给认识率和熟悉度评分。</div>
+    <div class="fc-scopes">${sc.map(x=>
+      `<button class="chip ${fcScope===x[0]?"on":""}" onclick="fcPickScope('${x[0]}')">${x[1]}</button>`).join("")}</div>
+    <button class="fc-go" onclick="fcStart()">开始抽认 · ${n} 题</button>
+    <div class="fc-last">${last
+      ? `上一轮：${FC_SCOPE[last.s]||last.s} · 认识率 <b>${last.r}%</b>（${last.ok}/${last.n}）· 评分 <b>${last.g}</b> · ${last.d.slice(5).replace("-","/")}`
+        + (f.rounds>1?`<br>累计 <b>${f.rounds}</b> 轮 · 最好成绩 <b>${f.best}%</b>`:"")
+      : "还没测过。第一轮建议先抽<b>辅音</b>——44 个里抽 20 题，复现率够高才记得住。"}</div>
+    ${wn?`<div class="fc-last">薄弱池现有 <b>${wn}</b> 个字母（答错累积、答对抵消），选「薄弱」就只抽这些。</div>`:""}`;
+}
+function fcPickScope(s){fcScope=s;fcSt().scope=s;save();fcRenderStart();}
+
+/* ---------- 视图 2：逐题作答 ---------- */
+function fcStart(list){
+  const pool=fcShuffle((list||fcPool(fcScope)).slice());
+  if(!pool.length){showToast("这个范围里没有可抽的字母");return;}
+  fcQ={scope:fcScope,q:pool.slice(0,Math.min(FC_N,pool.length)),idx:0,ok:0,wrong:[],lock:false,detail:false,done:false};
+  fcSt().scope=fcScope;save();
+  fcRenderCard();
+}
+function fcRenderCard(){
+  const fa=fcFace(fcQ.q[fcQ.idx]),n=fcQ.q.length;
+  document.getElementById("fcBox").innerHTML=`
+    <div class="fc-prog"><span>第 ${fcQ.idx+1} / ${n} 题</span>
+      <span class="fc-bar"><i style="width:${(fcQ.idx/n*100).toFixed(1)}%"></i></span>
+      <span class="ok">✓ ${fcQ.ok}</span><span>✕ ${fcQ.wrong.length}</span></div>
+    <div class="fc-stage"><span class="fc-type">${fa.type}</span>
+      <div class="fc-char" style="font-size:${fa.fs}px">${fa.ch}</div>
+      <div class="fc-ans" id="fcAns"></div></div>
+    <div class="fc-btns">
+      <button class="fc-no" id="fcNo" onclick="fcAnswer(false)">✕ 不认识</button>
+      <button class="fc-yes" id="fcYes" onclick="fcAnswer(true)">✓ 认识</button>
+    </div>
+    <div class="fc-hint">答「不认识」会打开详情页，关掉详情自动进下一题<br>
+      键盘 <kbd>←</kbd> 不认识 · <kbd>→</kbd> 认识 · <kbd>Esc</kbd> 退出本轮（进度不结算）</div>`;
+}
+function fcAnswer(yes){
+  if(!fcQ||fcQ.lock||fcQ.done)return;
+  const o=fcQ.q[fcQ.idx],fa=fcFace(o),f=fcSt(),k=fcKey(o);
+  fcQ.lock=true;
+  if(yes){fcQ.ok++;if(f.weak[k]&&--f.weak[k]<=0)delete f.weak[k];}
+  else{fcQ.wrong.push(o);f.weak[k]=(f.weak[k]||0)+1;}
+  save();
+  const el=document.getElementById("fcAns");
+  if(el)el.innerHTML=`<span class="cls">${fa.cls}</span><br>
+    <span class="mk ${yes?"y":"n"}">${yes?"✓":"✕"}</span>${fa.ans}`;
+  const b1=document.getElementById("fcNo"),b2=document.getElementById("fcYes");
+  if(b1)b1.disabled=true;if(b2)b2.disabled=true;
+  if(yes)setTimeout(()=>{if(fcQ&&!fcQ.done){fcQ.lock=false;fcNext();}},900);
+  else{fcQ.detail=true;setTimeout(()=>{if(!fcQ)return;fcQ.lock=false;if(o.t==="c")openTCons(o.i);else openTVow(o.i);},320);}
+}
+/* 详情弹窗关闭时的回调（挂在 pmClose 末尾）：只在「因答不认识而打开」的情况下推进 */
+function fcAfterDetail(){if(fcQ&&fcQ.detail&&!fcQ.done){fcQ.detail=false;fcNext();}}
+function fcNext(){
+  if(!fcQ||fcQ.done)return;
+  fcQ.idx++;fcQ.lock=false;
+  if(fcQ.idx>=fcQ.q.length)fcFinish();else fcRenderCard();
+}
+
+/* ---------- 视图 3：结算 ---------- */
+function fcFinish(){
+  const f=fcSt(),n=fcQ.q.length,ok=fcQ.ok,rate=Math.round(ok/n*100);
+  const g=FC_GRADES.find(x=>rate>=x.min)||FC_GRADES[FC_GRADES.length-1];
+  fcQ.done=true;
+  f.hist.unshift({d:todayStr(),s:fcQ.scope,ok:ok,n:n,r:rate,g:g.g});
+  f.hist=f.hist.slice(0,12);
+  f.rounds=(f.rounds||0)+1;
+  f.best=Math.max(f.best||0,rate);
+  save();
+  fcRenderResult(g,rate,ok,n);
+  checkBadges();
+}
+function fcRenderResult(g,rate,ok,n){
+  const w=fcQ.wrong,inW=o=>w.indexOf(o)>=0;
+  const cq=fcQ.q.filter(o=>o.t==="c"),vq=fcQ.q.filter(o=>o.t==="v");
+  const split=[];
+  if(cq.length&&vq.length)split.push(`辅音 <b>${cq.filter(o=>!inW(o)).length}/${cq.length}</b>`,
+                                     `元音 <b>${vq.filter(o=>!inW(o)).length}/${vq.length}</b>`);
+  /* 错题按辅音类别归组，最集中且 ≥3 个才给诊断，避免一两道错题也长篇大论 */
+  const byCls={};
+  w.filter(o=>o.t==="c").forEach(o=>{const l=CLASS_META[o.r[3]].label;byCls[l]=(byCls[l]||0)+1;});
+  const top=Object.keys(byCls).sort((a,b)=>byCls[b]-byCls[a])[0];
+  const wfs=s=>{const c=[...s].length;return c<=2?25:c<=4?19:14;};
+  document.getElementById("fcBox").innerHTML=`
+    <div class="fc-rate">${rate}<small>%</small></div>
+    <div class="fc-tip" style="margin:2px 0 0">认识 ${ok} / ${n} 题 · ${FC_SCOPE[fcQ.scope]||fcQ.scope} · ${todayStr().slice(5).replace("-","/")}</div>
+    <div><span class="fc-grade ${g.g}">熟悉度 ${g.g}</span></div>
+    <div class="fc-verdict">${g.v}</div>
+    <div class="fc-advice">${g.t}</div>
+    ${split.length?`<div class="fc-split">${split.map(s=>`<span class="fc-pill">${s}</span>`).join("")}</div>`:""}
+    ${top&&byCls[top]>=3&&FC_FIX[top]?`<div class="fc-advice" style="margin-top:13px;padding-top:11px;border-top:1px dashed var(--line)">
+      <b style="color:var(--gold-soft)">错题集中在「${top}」· ${byCls[top]} 个</b><br>${FC_FIX[top]}</div>`:""}
+    <div class="fc-wrong"><h5>${w.length?`本轮不认识 · ${w.length} 个（点开看详情）`:"本轮全对 🎉"}</h5>
+      ${w.length?`<div class="fc-wlist">${w.map(o=>{const fa=fcFace(o);
+        return `<button class="fc-wi" style="font-size:${wfs(fa.ch)}px" title="${fa.cls}"
+          onclick="fcDetail('${o.t}',${o.i})">${fa.ch}</button>`;}).join("")}</div>`:""}</div>
+    <div class="fc-acts">
+      ${w.length
+        ? `<button class="pri" onclick="fcAgainWrong()">只练这 ${Math.min(w.length,FC_N)} 个错题</button>`
+        : `<button class="pri" onclick="fcStart()">再抽一轮</button>`}
+      <button onclick="fcBack()">${w.length?"换范围再抽":"调整范围"}</button>
+      <button onclick="fcClose()">关闭</button>
+    </div>`;
+}
+function fcDetail(t,i){if(t==="c")openTCons(i);else openTVow(i);}
+function fcAgainWrong(){if(fcQ&&fcQ.wrong.length)fcStart(fcQ.wrong);}
 
 /* ================= 文章学习 ================= */
 /* 分级：0 初级 1 中级 2 高级 3 进阶 · 每级 10 篇泰国小朋友级短文
@@ -2292,6 +2567,8 @@ const BADGES=[
     const st=state.build;if(!st||!st.solved)return false;
     return BLEV.every(L=>L.syl.every(s=>st.solved[L.id+"|"+s[0]]));}},
   {id:"rd10",i:"🗣",n:"跟读常客",d:"文章跟读累计播放 10 次",f:()=>(state.cnt.rd||0)>=10},
+  {id:"fcS",i:"🔤",n:"字母关",d:"字母抽认一轮认识率 ≥95%",f:()=>((state.fc&&state.fc.best)||0)>=95},
+  {id:"fc20",i:"🎴",n:"抽认老手",d:"字母抽认累计完成 20 轮",f:()=>((state.fc&&state.fc.rounds)||0)>=20},
 ];
 let _bdgJust=[];
 function checkBadges(){
@@ -2363,7 +2640,7 @@ function setCloudBadge(txt,ok){
 function cloudPayload(){
   return {ms:state.ms,logs:state.logs,known:state.known,auto:state.auto,
     badges:Array.isArray(state.badges)?state.badges:[],cnt:state.cnt,today:state.today,
-    build:state.build||null,updatedAt:state.updatedAt||Date.now()};
+    build:state.build||null,fc:state.fc||null,updatedAt:state.updatedAt||Date.now()};
 }
 function queueCloudSync(){
   if(!_cloudMe||!window.Site)return;
@@ -2411,6 +2688,7 @@ function loadVarFonts(){
       if(d.cnt)state.cnt=d.cnt;
       if(d.today)state.today=d.today;
       if(d.build)state.build=d.build;
+      if(d.fc)state.fc=d.fc; // 抽认卡：薄弱池 + 历史成绩，跨设备接着练
       state.updatedAt=cloudTs;
       ensureSchema(); // 云端 today 可能已跨天，落地前再校验一次
       localStorage.setItem(KEY,JSON.stringify(state));
