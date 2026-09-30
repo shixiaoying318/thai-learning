@@ -1,11 +1,15 @@
 /* 泰语学习面板 Service Worker
    策略（PWA 桌面图标 + 离线可用）：
    - 页面导航（index.html）：网络优先，4 秒超时或断网回退缓存 → 在线永远是最新版，离线也能打开
-   - 同源静态资源（art-audio.js / 图标 / manifest）：缓存优先，后台静默刷新（stale-while-revalidate）
+   - 同源静态资源（core-audio.js / word-audio.js / art-audio.js / 图标 / manifest）：
+     缓存优先，后台静默刷新（stale-while-revalidate）
    - 跨域请求（Google 字体 / TTS）：不代理，直接放行
-   改动缓存结构时升级 CACHE 版本号，activate 会自动清掉旧缓存 */
-const CACHE = "thai-v1";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-1024.png"];
+   改动缓存结构时升级 CACHE 版本号，activate 会自动清掉旧缓存
+   2026-09-30：主音频包从 index.html 内嵌拆到 core-audio.js（index.html 8.3MB→290KB）。
+   core-audio.js 必须进 CORE 预缓存——原先它内嵌在 index.html 里，只缓存页面就自动离线可发音；
+   拆出后若不预缓存，离线打开页面会点不出声音。v1→v2 让 activate 清掉旧的 8MB 页面缓存。 */
+const CACHE = "thai-v2";
+const CORE = ["./", "./index.html", "./core-audio.js", "./manifest.webmanifest", "./icons/icon-1024.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(
