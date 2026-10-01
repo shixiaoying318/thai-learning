@@ -535,6 +535,12 @@ body.novar .vfonts{display:none}
 /* 答题态 */
 .fc-prog{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--mute);margin-bottom:13px;white-space:nowrap}
 .fc-prog .ok{color:var(--jade)}
+/* 撤销上一题：进度行右侧小圆钮，无栈时 disabled 半透明 */
+.fc-undo{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);flex:none;
+  background:transparent;color:var(--mute);font-size:12px;cursor:pointer;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+.fc-undo:hover:not(:disabled){color:var(--gold-soft);border-color:var(--gold-dim)}
+.fc-undo:disabled{opacity:.35;cursor:default}
 .fc-bar{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
 .fc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#d98d1e);transition:width .25s}
 .fc-stage{position:relative;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:24px 12px 14px;margin-bottom:15px}
@@ -1534,6 +1540,11 @@ document.addEventListener("keydown",e=>{
     if(on("pmMask"))pmClose();else if(on("infoMask"))closeInfo();else if(on("fcMask"))fcClose();
     return;
   }
+  if(e.key==="Backspace"){ // 撤销上一题作答；详情页/说明页打开时不响应，避免误触
+    if(on("pmMask")||on("infoMask")||!on("fcMask"))return;
+    e.preventDefault(); // 拦住浏览器默认的「后退」
+    fcUndo();return;
+  }
   if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;
   if(on("pmMask")||on("infoMask")||!on("fcMask"))return;
   fcAnswer(e.key==="ArrowRight");
@@ -1832,7 +1843,7 @@ const FC_FIX={
   "低辅音":"低辅音 24 个最多，别硬背——和高辅音一一配对记：ข↔ค · ฃ↔ฆ · ฉ↔ช · ฐ↔ฑ · ถ↔ท · ผ↔พ · ฝ↔ฟ · ห↔ฮ。认得高的就能顺出低的。"
 };
 const FC_SCOPE={cons:"辅音",vow:"元音",all:"全部",weak:"薄弱"};
-let fcScope="cons",fcQ=null;
+let fcScope="cons",fcQ=null;const fcUndoStack=[]; // 撤销作答的快照栈（只存本轮可变部分，开新一轮清空）
 /* state.fc 不在 ensureSchema 里初始化：导入数据 / 重置后 state 会被整体替换，
    统一走这个惰性 getter 兜底，任何路径进来都不会读到 undefined */
 function fcSt(){
@@ -1870,7 +1881,7 @@ function fcShuffle(a){
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}
   return a;
 }
-function fcOpen(){fcScope=fcSt().scope;fcQ=null;fcRenderStart();document.getElementById("fcMask").classList.add("on");}
+function fcOpen(){fcScope=fcSt().scope;fcQ=null;fcUndoStack.length=0;fcRenderStart();document.getElementById("fcMask").classList.add("on");}
 function fcClose(){document.getElementById("fcMask").classList.remove("on");fcQ=null;}
 function fcBack(){fcQ=null;fcRenderStart();}
 
@@ -1902,6 +1913,7 @@ function fcStart(list){
   const pool=fcShuffle((list||fcPool(fcScope)).slice());
   if(!pool.length){showToast("这个范围里没有可抽的字母");return;}
   fcQ={scope:fcScope,q:pool.slice(0,Math.min(FC_N,pool.length)),idx:0,ok:0,wrong:[],lock:false,detail:false,done:false};
+  fcUndoStack.length=0; // 新一轮开始，撤销栈清空
   fcSt().scope=fcScope;save();
   fcRenderCard();
 }
@@ -1910,7 +1922,9 @@ function fcRenderCard(){
   document.getElementById("fcBox").innerHTML=`
     <div class="fc-prog"><span>第 ${fcQ.idx+1} / ${n} 题</span>
       <span class="fc-bar"><i style="width:${(fcQ.idx/n*100).toFixed(1)}%"></i></span>
-      <span class="ok">✓ ${fcQ.ok}</span><span>✕ ${fcQ.wrong.length}</span></div>
+      <span class="ok">✓ ${fcQ.ok}</span><span>✕ ${fcQ.wrong.length}</span>
+      <button class="fc-undo" onclick="fcUndo()" title="撤销上一题作答，回到那一题重答（Backspace）"
+        ${fcUndoStack.length?"":"disabled"}>↩</button></div>
     <div class="fc-stage"><span class="fc-type">${fa.type}</span>
       <div class="fc-char" style="font-size:${fa.fs}px">${fa.ch}</div>
       <div class="fc-ans" id="fcAns"></div></div>
@@ -1918,12 +1932,13 @@ function fcRenderCard(){
       <button class="fc-no" id="fcNo" onclick="fcAnswer(false)">✕ 不认识</button>
       <button class="fc-yes" id="fcYes" onclick="fcAnswer(true)">✓ 认识</button>
     </div>
-    <div class="fc-hint">答「不认识」会打开详情页，关掉详情自动进下一题<br>
-      键盘 <kbd>←</kbd> 不认识 · <kbd>→</kbd> 认识 · <kbd>Esc</kbd> 退出本轮（进度不结算）</div>`;
+    <div class="fc-hint">答「不认识」会打开详情页，关掉详情自动进下一题；答错了点 <b>↩</b> 撤销重答<br>
+      键盘 <kbd>←</kbd> 不认识 · <kbd>→</kbd> 认识 · <kbd>Backspace</kbd> 撤销上一题 · <kbd>Esc</kbd> 退出本轮（进度不结算）</div>`;
 }
 function fcAnswer(yes){
   if(!fcQ||fcQ.lock||fcQ.done)return;
   const o=fcQ.q[fcQ.idx],fa=fcFace(o),f=fcSt(),k=fcKey(o);
+  fcPushUndo(false); // 先快照本题作答前状态：↩ / Backspace 可成套回滚
   fcQ.lock=true;
   if(yes){fcQ.ok++;if(f.weak[k]&&--f.weak[k]<=0)delete f.weak[k];}
   else{fcQ.wrong.push(o);f.weak[k]=(f.weak[k]||0)+1;}
@@ -1933,8 +1948,36 @@ function fcAnswer(yes){
     <span class="mk ${yes?"y":"n"}">${yes?"✓":"✕"}</span>${fa.ans}`;
   const b1=document.getElementById("fcNo"),b2=document.getElementById("fcYes");
   if(b1)b1.disabled=true;if(b2)b2.disabled=true;
-  if(yes)setTimeout(()=>{if(fcQ&&!fcQ.done){fcQ.lock=false;fcNext();}},900);
+  if(yes)fcQ._advT=setTimeout(()=>{fcQ._advT=0;if(fcQ&&!fcQ.done){fcQ.lock=false;fcNext();}},900);
   else{fcQ.detail=true;setTimeout(()=>{if(!fcQ)return;fcQ.lock=false;if(o.t==="c")openTCons(o.i);else openTVow(o.i);},320);}
+}
+/* ---------- 撤销上一题作答 ----------
+   手滑点了「认识」却发现其实不认识，原先没法反悔，错答会污染认识率与薄弱池。
+   快照只存本轮可变部分（题号 / 认识数 / 错题表 / 薄弱池），结算时多存 hist/rounds/best；
+   撤销时成套回滚并回到该题重答。栈式：可连撤到第 1 题，也能从结算页撤回复最后一题。 */
+function fcPushUndo(fin){
+  const f=fcSt(),s={idx:fcQ.idx,ok:fcQ.ok,wrong:fcQ.wrong.slice(),weak:Object.assign({},f.weak),fin:!!fin};
+  if(fin){s.hist=f.hist.slice();s.rounds=f.rounds||0;s.best=f.best||0;}
+  fcUndoStack.push(s);
+}
+function fcUndo(){
+  if(!fcQ){showToast("先开始一轮抽认");return;}
+  if(fcQ.detail){showToast("先关掉详情弹窗，再撤销这一题");return;}
+  if(!fcUndoStack.length){showToast("没有可撤销的作答");return;}
+  const f=fcSt();
+  let s=fcUndoStack.pop();
+  if(s.fin){
+    // 从结算页撤销：先回滚本轮记录（不留半轮 hist），再弹一帧拿最后一题的作答前快照。
+    // 结算必发生在至少一次作答之后，所以栈里必然还有这一帧。
+    f.hist=s.hist;f.rounds=s.rounds;f.best=s.best;
+    s=fcUndoStack.pop();
+  }
+  if(fcQ._advT){clearTimeout(fcQ._advT);fcQ._advT=0;} // 取消「认识」闪现后挂着的自动推进
+  fcQ.done=false;fcQ.lock=false;fcQ.detail=false;
+  fcQ.idx=s.idx;fcQ.ok=s.ok;fcQ.wrong=s.wrong;
+  f.weak=s.weak;
+  save();fcRenderCard();
+  showToast("已撤销，重答第 "+(s.idx+1)+" 题");
 }
 /* 详情弹窗关闭时的回调（挂在 pmClose 末尾）：只在「因答不认识而打开」的情况下推进 */
 function fcAfterDetail(){if(fcQ&&fcQ.detail&&!fcQ.done){fcQ.detail=false;fcNext();}}
@@ -1948,6 +1991,7 @@ function fcNext(){
 function fcFinish(){
   const f=fcSt(),n=fcQ.q.length,ok=fcQ.ok,rate=Math.round(ok/n*100);
   const g=FC_GRADES.find(x=>rate>=x.min)||FC_GRADES[FC_GRADES.length-1];
+  fcPushUndo(true); // 结算也压一帧快照：从结算页撤销时连 hist/rounds/best 一起回滚，不留半轮记录
   fcQ.done=true;
   f.hist.unshift({d:todayStr(),s:fcQ.scope,ok:ok,n:n,r:rate,g:g.g});
   f.hist=f.hist.slice(0,12);
@@ -1985,6 +2029,7 @@ function fcRenderResult(g,rate,ok,n){
       ${w.length
         ? `<button class="pri" onclick="fcAgainWrong()">只练这 ${Math.min(w.length,FC_N)} 个错题</button>`
         : `<button class="pri" onclick="fcStart()">再抽一轮</button>`}
+      ${fcUndoStack.length?`<button onclick="fcUndo()" title="撤销最后一题的作答，回到那一题重答">↩ 重答上一题</button>`:""}
       <button onclick="fcBack()">${w.length?"换范围再抽":"调整范围"}</button>
       <button onclick="fcClose()">关闭</button>
     </div>`;
