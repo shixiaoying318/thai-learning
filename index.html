@@ -370,8 +370,10 @@ footer .thai{color:var(--gold-dim);font-size:14px}
 .pm-svg text{font-family:'Mali','Cordia New',sans-serif;font-size:56px;font-weight:800;fill:#d4553f}
 .pm-svg circle{fill:#d4553f}
 .pm-canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
-/* 书写面禁止文本选中/长按呼叫菜单：手指或 Apple Pencil 拖写时不会把界面文字选成一片 */
-.pm-grid,.rwgrid,.pm-canvas{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* 书写弹窗整体禁止文本选中/长按呼叫菜单：手掌压在画布外的说明文字或边距上拖移时，
+   iOS 会把它当文本选择拖拽（「写一半界面被选中一片」的真正来源），光靠画布的
+   preventDefault 拦不住——落点不在画布上。覆盖整个弹窗，代价是弹窗内文字不可复制。 */
+.pm-mask,.pm-mask *,.rwgrid{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .pm-btns{display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap}
 .pm-btns button{border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--ink);border-radius:99px;
   padding:7px 14px;font-size:12.5px;cursor:pointer;font-family:inherit}
@@ -1779,14 +1781,21 @@ function pmPos(e){const r=pmCv.getBoundingClientRect();return{x:e.clientX-r.left
    - 掌压抑制：近期见过 pen 事件时忽略 touch 落点（握笔时手掌的接触面）
    - 单笔画：已有笔画进行中时忽略第二个落点（防误触双指涂鸦）
    - getCoalescedEvents：笔的高速采样点不丢，线条更跟手 */
-let _penSeen=0,_pActiveId=0;
+let _penSeen=0,_pActiveId=0,_pActiveType="";
 pmCv.addEventListener("contextmenu",e=>e.preventDefault()); // 长按不弹菜单（移动端）
 pmCv.addEventListener("pointerdown",e=>{
   if(e.pointerType==="pen")_penSeen=Date.now();
-  if(e.pointerType==="touch"&&Date.now()-_penSeen<2000)return; // 掌压
+  /* 掌压抑制：本设备一旦出现过笔输入，此后所有 touch 一律当握笔手掌/误触忽略。
+     旧的「2 秒窗口」把顺序想反了：真实书写是「手先贴玻璃、笔再落下」，
+     掌落点那一刻笔还没动过，掌就被认成第一笔，之后真笔的每一笔都被单笔画守卫吞掉。 */
+  if(e.pointerType==="touch"&&_penSeen)return;
+  /* 手先落、笔后拿：丢弃进行中的 touch 笔画（连画布上那条脏线一起擦掉）交给笔 */
+  if(e.pointerType==="pen"&&_pdraw&&_pActiveType==="touch"){
+    _pdraw=false;_pActiveId=0;pmStrokes.pop();pmRedraw();
+  }
   if(_pdraw)return;
   e.preventDefault();
-  _pdraw=true;_pActiveId=e.pointerId;try{pmCv.setPointerCapture(e.pointerId);}catch(err){} // 合成事件/个别浏览器对无效 pointerId 会抛异常，不能中断起笔
+  _pdraw=true;_pActiveId=e.pointerId;_pActiveType=e.pointerType;try{pmCv.setPointerCapture(e.pointerId);}catch(err){} // 合成事件/个别浏览器对无效 pointerId 会抛异常，不能中断起笔
   _plast=pmPos(e);
   pmStrokes.push([[_plast.x,_plast.y]]);
   _pctx.beginPath();_pctx.arc(_plast.x,_plast.y,3.5,0,7);_pctx.fillStyle=_pctx.strokeStyle;_pctx.fill();});
@@ -1801,7 +1810,7 @@ pmCv.addEventListener("pointermove",e=>{
   }});
 ["pointerup","pointercancel"].forEach(ev=>pmCv.addEventListener(ev,e=>{
   if(e.pointerId!==_pActiveId)return; // 只认当前笔画的指针：被拒掌触/第二指的 up 不能中断在写的笔画
-  _pdraw=false;_pActiveId=0;}));
+  _pdraw=false;_pActiveId=0;_pActiveType="";}));
 /* 辅音单音 = 字母+占位 อ（ก→กอ）：44 个字母各读一个音节，不再读「字母+代表词」词组；
    同音异形（ฃอ=ขอ、ฆอ=คอ…）在音频包里各存一份，听感一致 */
 const consSyl=r=>r[0]+"อ";
