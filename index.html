@@ -565,6 +565,32 @@ body.novar .vfonts{display:none}
 .share-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;
   max-width:min(420px,92vw);max-height:92vh;overflow:auto;box-shadow:var(--shadow)}
 .share-box img{width:100%;border-radius:12px;display:block;border:1px solid var(--line)}
+/* ---------- 打字练习 ---------- */
+.ty-target{margin:16px 0 6px;padding:18px 16px;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--panel2);font-size:34px;line-height:1.9;letter-spacing:2px;min-height:76px;
+  overflow-wrap:anywhere}
+.ty-target.noloop{font-family:'Noto Sans Thai','Leelawadee UI',sans-serif} /* 默认社媒无圈：练的就是真场景 */
+.ty-target.loop{font-family:'Mali','Cordia New',sans-serif}
+.ty-target .tch{padding:1px 3px;border-radius:6px}
+.ty-target .tch.cur{background:var(--gold-dim);color:var(--gold-soft);box-shadow:0 0 0 1px var(--gold)}
+.ty-target .tch.ok{color:var(--jade)}
+.ty-target .tch.bad{color:var(--crimson);text-decoration:underline wavy var(--crimson) 1.5px}
+.ty-target .tch.sp{opacity:.5}
+.ty-stat{font-size:12.5px;color:var(--mute);margin:2px 0 12px;min-height:18px}
+.ty-stat b{color:var(--ink)}
+.ty-kbwrap{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:14px;overflow-x:auto}
+.ty-kbrow{display:flex;gap:6px;margin-bottom:6px;justify-content:center}
+.kb-key{min-width:38px;height:44px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);
+  color:var(--ink);font-size:17px;cursor:pointer;font-family:'Noto Sans Thai','Leelawadee UI','Mali',sans-serif;
+  transition:all .12s;padding:0 6px}
+.kb-key:hover{border-color:var(--gold-dim)}
+.kb-key.need{border-color:var(--gold);color:var(--gold-soft);box-shadow:0 0 0 1px var(--gold),0 0 12px var(--gold-dim)}
+.kb-key.bad{animation:tybad .3s ease}
+@keyframes tybad{0%,100%{background:var(--panel2)}40%{background:rgba(212,85,63,.35);border-color:var(--crimson)}}
+.kb-shift{margin:0 0 10px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);
+  color:var(--mute);font-size:12.5px;font-weight:700;padding:6px 16px;cursor:pointer}
+.kb-shift.on{color:var(--gold-soft);border-color:var(--gold)}
+.kb-shift.need{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
 .fc-bar{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
 .fc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#d98d1e);transition:width .25s}
 .fc-stage{position:relative;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:24px 12px 14px;margin-bottom:15px}
@@ -644,6 +670,7 @@ body.novar .vfonts{display:none}
   <button id="tb-alpha" onclick="tab('alpha')">字母表<small>44 辅音 · 25 元音 · 四线摹写</small></button>
   <button id="tb-build" onclick="tab('build')">组字练习<small>4 关 · 随机演练</small></button>
   <button id="tb-read" onclick="tab('read')">文章学习<small>40 篇 · 跟读</small></button>
+  <button id="tb-type" onclick="tab('type')">打字练习<small>Kedmanee · 4 关</small></button>
 </nav>
 
 <!-- ================= 路线 ================= -->
@@ -811,6 +838,24 @@ body.novar .vfonts{display:none}
     <div class="ibd" id="infoBody"></div>
   </div>
 </div>
+<!-- ================= 打字练习 ================= -->
+<section id="sec-type">
+  <div class="dk-head">
+    <div><h2>打字练习 <button class="infoBtn" onclick="openInfo('type')" title="Kedmanee 键位与玩法">!</button></h2>
+      <div class="sub" id="tySub"></div></div>
+    <div class="dk-tools">
+      <button class="chip" id="tyFontBtn" onclick="tyToggleFont()">字形：社媒无圈</button>
+    </div>
+  </div>
+  <div class="chips" id="tyChips"></div>
+  <div class="ty-target" id="tyTarget"></div>
+  <div class="ty-stat" id="tyStat"></div>
+  <div class="ty-kbwrap">
+    <button class="kb-shift" id="tyShiftBtn" onclick="tyToggleShift()">⇧ Shift</button>
+    <div id="tyKb"></div>
+  </div>
+</section>
+
 <!-- 字母抽认卡弹窗：三个视图（范围选择 / 答题 / 结算）都由 fcRender* 动态渲染进 #fcBox -->
 <div class="fc-mask" id="fcMask" onclick="if(event.target===this)fcClose()">
   <div class="fc-box" id="fcBox"></div>
@@ -1034,7 +1079,7 @@ function save(){state.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringi
 function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
 function tab(t){
   state.activeTab=t;save();
-  ["road","log","deck","alpha","build","read"].forEach(x=>{
+  ["road","log","deck","alpha","build","read","type"].forEach(x=>{
     document.getElementById("sec-"+x).classList.toggle("on",x===t);
     document.getElementById("tb-"+x).classList.toggle("on",x===t);
   });
@@ -1700,6 +1745,9 @@ const INFO={
     <div class="isec"><h5>加班缓冲规则</h5>工作日被回归加班吃掉 → 当天 2 个视频挪到周末（周末 3h = 4 个视频量刚好塞下）；9/22 后还剩欠账 → 砍练习、保生词进库 + 课文跟读；连崩 3 天以上 → 来找我重排，别自己硬扛然后弃坑。</div>
     <div class="isec"><h5>弃坑悬崖预警</h5>字母和拼读规则是全程弃坑率最高的地方。觉得难受是正常的，所有人都一样——熬到 B1 能读课文就豁然开朗。难受的时候打开「学习记录」看看热力图上自己点亮的格子。</div>
     <div class="isec"><h5>每日保底</h5>冲刺期（至 9/30）工作日保底 = 2 个视频（约 50 分钟）；加班崩盘日保底 = 打开面板把「今日任务」做完（约 10 分钟），视频欠账挪周末补；冲刺结束后回到每日 15 分钟保底。保连续性 &gt; 保强度。</div>`},
+  type:{title:"打字练习 · Kedmanee 键位与玩法",html:`
+    <div class="isec"><h5>为什么练打字</h5>会打字 = 能查词典、能发信息、能搜歌词——从「认读」跨到「能用」的分水岭。键位是泰国标准 <b>Kedmanee</b>（键位表取自 xkeyboard-config 标准定义，和 Windows/macOS 的泰语键盘一致）。</div>
+    <div class="isec"><h5>怎么玩</h5>真键盘直接敲（页面会接管按键，不用切输入法）；平板/手机点屏幕键盘。<b>打错不跳字</b>，原地重打并记一次错——错在哪看波浪线。高亮的键 = 下一个字该按的键，需要 Shift 时 Shift 钮会亮金边。关4 用词库真词，默认<b>社媒无圈字形</b>（和真实输入场景一致），可一键切课本带圈对照。</div>`},
   radar:{title:"掌握度雷达 · 四个维度怎么算",html:`
     <div class="isec"><h5>维度口径</h5><b>字母</b> = 抽认卡历轮认识率的平均（最近 12 轮）；<b>组字</b> = 组字练习关1–3 的音节通关率；<b>声调</b> = 关4「五调对战」通关率；<b>词汇</b> = 词库「标记掌握」数 / 150。全部是已有学习数据的再加工，不额外埋点。</div>
     <div class="isec"><h5>怎么用</h5>雷达看的是<b>偏科</b>，不是总分：哪一维凹进去，下一步就练哪一块（图旁会直接给出去向）。四角都鼓之前，别急着加新内容——先把凹的那维填平。</div>`},
@@ -3007,8 +3055,122 @@ function renderHeatmap(){
   const x=document.getElementById("heatX");if(x)x.innerHTML=xHtml;
 }
 
+/* ================= 打字练习（Kedmanee 键盘） =================
+   键位表来源：xkeyboard-config symbols/th 的 basic 段（即 Kedmanee / TIS 标准），
+   2026-09-30 抓取并逐键解析，34 个锚点与标准图核对一致。值 = [unshift, shift]。
+   会打字 = 能查词典、能输入、能聊天，是「认读」跨到「能用」的分水岭。 */
+const KED={"Backquote":["_","%"],"Digit1":["ๅ","+"],"Digit2":["/","1"],"Digit3":["-","2"],"Digit4":["ภ","3"],"Digit5":["ถ","4"],"Digit6":["ุ","ู"],"Digit7":["ึ","฿"],"Digit8":["ค","5"],"Digit9":["ต","6"],"Digit0":["จ","7"],"Minus":["ข","8"],"Equal":["ช","9"],"KeyQ":["ๆ","0"],"KeyW":["ไ","\""],"KeyE":["ำ","ฎ"],"KeyR":["พ","ฑ"],"KeyT":["า","ธ"],"KeyY":["ั","ํ"],"KeyU":["ี","๊"],"KeyI":["ร","ณ"],"KeyO":["น","ฯ"],"KeyP":["ย","ญ"],"BracketLeft":["บ","ฐ"],"BracketRight":["ล",","],"KeyA":["ฟ","ฤ"],"KeyS":["ห","ฆ"],"KeyD":["ก","ฏ"],"KeyF":["ด","โ"],"KeyG":["เ","ฌ"],"KeyH":["้","็"],"KeyJ":["่","๋"],"KeyK":["ำ","ษ"],"KeyL":["ส","ศ"],"Semicolon":["ว","ซ"],"Quote":["ง","."],"Backslash":["ฃ","ฅ"],"KeyZ":["ผ","("],"KeyX":["ป",")"],"KeyC":["แ","ฉ"],"KeyV":["อ","ฮ"],"KeyB":["ิ","ฺ"],"KeyN":["ื","์"],"KeyM":["ท","?"],"Comma":["ม","ฒ"],"Period":["ใ","ฬ"],"Slash":["ฝ","ฦ"],"Space":[" "," "]};
+const TY_ROWS=[
+ ["Backquote","Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus","Equal"],
+ ["KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight","Backslash"],
+ ["KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote"],
+ ["KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash","Space"]];
+const TY_LEVELS=[[1,"关1 · 辅音键"],[2,"关2 · 元音与声调符"],[3,"关3 · Shift 层"],[4,"关4 · 真词"]];
+let tyQ=null,tyShift=false,tyLv=1;
+function tySt(){if(!state.type||typeof state.type!=="object")state.type={};return state.type;}
+function tyFont(){return tySt().font==="loop"?"loop":"noloop";}
+const tyIsCons=c=>{const p=c.codePointAt(0);return p>=0x0E01&&p<=0x0E2E;};
+const tyIsVT=c=>{const p=c.codePointAt(0);return p>=0x0E31&&p<=0x0E4E;};
+function tyPool(lv){
+  if(lv===4){const ws=DECK.map(r=>r[1]).filter(w=>w&&w.length>=2&&w.length<=7&&!w.includes("…")&&!w.includes(" "));
+    return fcShuffle(ws.slice()).slice(0,3).join(" ");}
+  const uniq=[...new Set(Object.values(KED).map(v=>v[0]))]; // 关1/关2 只用未 Shift 层，键位不绕路
+  if(lv===1)return uniq.filter(tyIsCons);
+  if(lv===2)return uniq.filter(tyIsVT);
+  return [...new Set(Object.values(KED).map(v=>v[1]))].filter(tyIsCons); // Shift 层的辅音（ฤ ฆ ฎ ฑ…）
+}
+function tyKeyOf(ch){
+  if(ch===" ")return["Space",0];
+  for(const k in KED){if(KED[k][0]===ch)return[k,0];if(KED[k][1]===ch)return[k,1];}
+  return null;
+}
+function tyStart(lv){
+  tyLv=lv||tyLv;
+  const pool=tyPool(tyLv);
+  let target;
+  if(tyLv===4)target=pool;
+  else{const arr=[];for(let i=0;i<12;i++)arr.push(pool[Math.floor(Math.random()*pool.length)]);target=arr.join("");}
+  tyQ={target,pos:0,hit:0,err:0,mark:[],t0:Date.now(),done:false};
+  tyRenderChips();tyRenderTarget();tyRenderKb();tyRenderStat();
+}
+function tyRenderChips(){
+  const st=tySt();
+  document.getElementById("tyChips").innerHTML=TY_LEVELS.map(([id,name])=>{
+    const s=st["L"+id];
+    return `<button class="chip ${tyLv===id?"on":""}" onclick="tyStart(${id})">${name}${s&&s.n?` · ${s.n} 字`:""}</button>`;
+  }).join("");
+  const fb=document.getElementById("tyFontBtn");
+  if(fb)fb.textContent=tyFont()==="loop"?"字形：课本带圈":"字形：社媒无圈";
+}
+function tyRenderTarget(){
+  const el=document.getElementById("tyTarget");if(!el)return;
+  el.className="ty-target "+tyFont();
+  if(!tyQ){el.innerHTML='<span style="font-size:15px;color:var(--mute);letter-spacing:0">选一个关卡开始——真键盘直接敲，或点下面的屏幕键盘。打错不跳字，原地重打。</span>';return;}
+  el.innerHTML=[...tyQ.target].map((ch,i)=>{
+    const cls="tch"+(ch===" "?" sp":"")+(i===tyQ.pos&&!tyQ.done?" cur":"")+(tyQ.mark[i]?" "+tyQ.mark[i]:"");
+    return `<span class="${cls}">${ch===" "?"␣":ch}</span>`;
+  }).join("");
+}
+function tyRenderKb(){
+  const kb=document.getElementById("tyKb");if(!kb)return;
+  const next=tyQ&&!tyQ.done?tyQ.target[tyQ.pos]:null;
+  const nk=next?tyKeyOf(next):null;
+  kb.innerHTML=TY_ROWS.map(row=>`<div class="ty-kbrow">${row.map(code=>{
+    if(code==="Space")return `<button class="kb-key ${nk&&nk[0]==="Space"?"need":""}" style="min-width:180px;font-size:12px" onclick="tyKbHit('Space')">空格</button>`;
+    const ch=KED[code][tyShift?1:0];
+    return `<button class="kb-key ${nk&&nk[0]===code&&nk[1]===(tyShift?1:0)?"need":""}" data-code="${code}" title="${code}" onclick="tyKbHit('${code}')">${ch}</button>`;
+  }).join("")}</div>`).join("");
+  const sb=document.getElementById("tyShiftBtn");
+  if(sb){sb.classList.toggle("on",tyShift);sb.classList.toggle("need",!!nk&&nk[1]===1&&!tyShift);}
+}
+function tyRenderStat(){
+  const el=document.getElementById("tyStat");if(!el)return;
+  const st=tySt()["L"+tyLv]||{n:0,err:0,rounds:0};
+  if(!tyQ){el.innerHTML=`本关累计：<b>${st.n||0}</b> 字 · 错 <b>${st.err||0}</b> 次 · ${st.rounds||0} 轮`;return;}
+  const tot=tyQ.hit+tyQ.err,acc=tot?Math.round(tyQ.hit/tot*100):100;
+  el.innerHTML=tyQ.done
+    ?`完成！<b>${tyQ.hit}</b> 字 · 错 <b>${tyQ.err}</b> 次 · 正确率 <b>${acc}%</b> · 用时 ${Math.max(1,Math.round((Date.now()-tyQ.t0)/1000))} 秒 —— 点关卡再来一轮`
+    :`第 <b>${tyQ.pos+1}</b> / ${tyQ.target.length} 字 · 对 <b>${tyQ.hit}</b> · 错 <b>${tyQ.err}</b> · 正确率 <b>${acc}%</b>`;
+}
+function tyPress(ch){
+  if(!tyQ||tyQ.done)return;
+  const exp=tyQ.target[tyQ.pos];
+  if(ch===exp){tyQ.hit++;tyQ.mark[tyQ.pos]="ok";tyQ.pos++;}
+  else{tyQ.err++;tyQ.mark[tyQ.pos]="bad";
+    const pk=tyKeyOf(ch);if(pk){const b=document.querySelector('.kb-key[data-code="'+pk[0]+'"]');if(b){b.classList.add("bad");setTimeout(()=>b.classList.remove("bad"),320);}}}
+  if(tyQ.pos>=tyQ.target.length){
+    tyQ.done=true;
+    const s=tySt();const e=s["L"+tyLv]||(s["L"+tyLv]={n:0,err:0,rounds:0});
+    e.n+=tyQ.hit;e.err+=tyQ.err;e.rounds++;save();
+  }
+  tyRenderTarget();tyRenderKb();tyRenderStat();tyRenderChips();
+}
+function tyKbHit(code){tyPress(code==="Space"?" ":KED[code][tyShift?1:0]);}
+function tyToggleShift(){tyShift=!tyShift;tyRenderKb();}
+function tyToggleFont(){const s=tySt();s.font=tyFont()==="loop"?"noloop":"loop";save();tyRenderChips();tyRenderTarget();}
+/* 真键盘：仅打字页激活且无弹窗遮挡时接管；拦截映射键避免页面滚动/快捷键误触 */
+document.addEventListener("keydown",e=>{
+  const sec=document.getElementById("sec-type");
+  if(!sec||!sec.classList.contains("on"))return;
+  if(["fcMask","pmMask","infoMask","shareMask"].some(id=>{const m=document.getElementById(id);return m&&m.classList.contains("on");}))return;
+  const t=e.target;if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"))return;
+  let ch=null;
+  if(e.code==="Space")ch=" ";else if(KED[e.code])ch=KED[e.code][e.shiftKey?1:0];
+  if(ch===null)return;
+  e.preventDefault();
+  tyPress(ch);
+});
+function renderType(){
+  const st=tySt();
+  const tot=TY_LEVELS.reduce((a,[id])=>{const s=st["L"+id];return a+(s?s.n:0);},0);
+  const err=TY_LEVELS.reduce((a,[id])=>{const s=st["L"+id];return a+(s?s.err:0);},0);
+  document.getElementById("tySub").textContent=tot
+    ?`累计 ${tot} 字 · 错 ${err} 次 · 正确率 ${Math.round(tot/(tot+err)*100)}%`
+    :"Kedmanee 是泰国标准键位；先认键再打字，关4 用词库真词";
+  tyRenderChips();tyRenderTarget();tyRenderKb();tyRenderStat();
+}
 /* ================= 启动 ================= */
-function renderAll(){renderRoad();renderLog();renderDeck();renderAlpha();renderBuild();renderRead();refreshStats();renderRadar();tab(state.activeTab||"road");}
+function renderAll(){renderRoad();renderLog();renderDeck();renderAlpha();renderBuild();renderRead();refreshStats();renderRadar();renderType();tab(state.activeTab||"road");}
 document.getElementById("inDate").value=todayStr();
 if("speechSynthesis" in window)speechSynthesis.getVoices();
 applyTheme(); // 主题要在首帧前落地，避免深色闪一下再切浅色
