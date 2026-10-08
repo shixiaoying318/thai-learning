@@ -561,6 +561,10 @@ body.novar .vfonts{display:none}
   display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
 .fc-undo:hover:not(:disabled){color:var(--gold-soft);border-color:var(--gold-dim)}
 .fc-undo:disabled{opacity:.35;cursor:default}
+/* 分享卡预览弹窗：图宽随屏，手机上也能看清再决定保存/复制 */
+.share-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;
+  max-width:min(420px,92vw);max-height:92vh;overflow:auto;box-shadow:var(--shadow)}
+.share-box img{width:100%;border-radius:12px;display:block;border:1px solid var(--line)}
 .fc-bar{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
 .fc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#d98d1e);transition:width .25s}
 .fc-stage{position:relative;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:24px 12px 14px;margin-bottom:15px}
@@ -810,6 +814,17 @@ body.novar .vfonts{display:none}
 <!-- 字母抽认卡弹窗：三个视图（范围选择 / 答题 / 结算）都由 fcRender* 动态渲染进 #fcBox -->
 <div class="fc-mask" id="fcMask" onclick="if(event.target===this)fcClose()">
   <div class="fc-box" id="fcBox"></div>
+</div>
+<!-- 成绩分享卡预览弹窗：canvas 生成 → img 预览 → 保存/复制 -->
+<div class="fc-mask" id="shareMask" style="z-index:130" onclick="if(event.target===this)shareClose()">
+  <div class="share-box">
+    <img id="shareImg" alt="成绩分享卡预览">
+    <div class="fc-acts" style="margin-top:12px;justify-content:center">
+      <button class="pri" onclick="shareDownload()">💾 保存图片</button>
+      <button onclick="shareCopy()">📋 复制图片</button>
+      <button onclick="shareClose()">关闭</button>
+    </div>
+  </div>
 </div>
 <div id="toast"></div>
 </div>
@@ -2184,12 +2199,90 @@ function fcRenderResult(g,rate,ok,n){
         ? `<button class="pri" onclick="fcAgainWrong()">只练这 ${Math.min(w.length,FC_N)} 个错题</button>`
         : `<button class="pri" onclick="fcStart()">再抽一轮</button>`}
       ${fcUndoStack.length?`<button onclick="fcUndo()" title="撤销最后一题的作答，回到那一题重答">↩ 重答上一题</button>`:""}
+      <button onclick="shareOpen()" title="生成一张成绩卡图片，可保存可复制发朋友">📤 分享成绩</button>
       <button onclick="fcBack()">${w.length?"换范围再抽":"调整范围"}</button>
       <button onclick="fcClose()">关闭</button>
     </div>`;
 }
 function fcDetail(t,i){if(t==="c")openTCons(i);else openTVow(i);}
 function fcAgainWrong(){if(fcQ&&fcQ.wrong.length)fcStart(fcQ.wrong);}
+
+/* ---------- 成绩分享卡：canvas 画一张可发朋友的图 ----------
+   仓库是公开的，朋友也能玩；结算页一键生成成绩图 = 天然社交闭环。
+   配色全部读当前主题的 CSS 变量，深色浅色两套主题出两套好看的卡。 */
+function shareCanvas(){
+  const cs=getComputedStyle(document.body);
+  const C=n=>cs.getPropertyValue(n).trim()||"#888";
+  const col={bg:C("--panel"),ink:C("--cream"),mute:C("--mute"),gold:C("--gold"),soft:C("--gold-soft"),line:C("--line"),jade:C("--jade")};
+  const n=fcQ.q.length,ok=fcQ.ok,rate=Math.round(ok/n*100);
+  const g=FC_GRADES.find(x=>rate>=x.min)||FC_GRADES[FC_GRADES.length-1];
+  const streak=(document.getElementById("stStreak")||{}).textContent||"0";
+  const mins=(document.getElementById("stMin")||{}).textContent||"0";
+  const badges=(Array.isArray(state.badges)?state.badges:[]).map(id=>BADGES.find(b=>b.id===id)).filter(Boolean);
+  const V=radarVals();
+  const cv=document.createElement("canvas");cv.width=750;cv.height=1000;
+  const x=cv.getContext("2d");
+  const rr=(px,py,w,h,r)=>{x.beginPath();if(x.roundRect)x.roundRect(px,py,w,h,r);else x.rect(px,py,w,h);};
+  x.fillStyle=col.bg;x.fillRect(0,0,750,1000);
+  const grd=x.createLinearGradient(0,0,750,0);grd.addColorStop(0,col.gold);grd.addColorStop(1,"transparent");
+  x.fillStyle=grd;x.fillRect(0,0,750,6);
+  x.textBaseline="alphabetic";
+  x.fillStyle=col.gold;x.font="700 46px Mali,'Cordia New',sans-serif";x.fillText("เรียนไทย",60,100);
+  x.fillStyle=col.ink;x.font="600 20px Sarabun,'Microsoft YaHei',sans-serif";x.fillText("泰语学习面板 · 字母抽认成绩卡",60,136);
+  x.fillStyle=col.mute;x.font="400 15px Sarabun,'Microsoft YaHei',sans-serif";x.textAlign="right";x.fillText(todayStr(),690,132);x.textAlign="left";
+  x.strokeStyle=col.line;x.lineWidth=1;x.beginPath();x.moveTo(60,164);x.lineTo(690,164);x.stroke();
+  x.fillStyle=col.gold;x.font="800 128px Prompt,Sarabun,sans-serif";x.fillText(rate,60,300);
+  const rw=x.measureText(String(rate)).width; // % 号紧跟数字宽度，100% 也不重叠
+  x.font="700 44px Prompt,Sarabun,sans-serif";x.fillText("%",60+rw+10,300);
+  rr(470,214,220,66,16);x.fillStyle=col.line;x.fill();
+  x.fillStyle=col.soft;x.font="800 30px Sarabun,'Microsoft YaHei',sans-serif";x.textAlign="center";x.fillText("熟悉度 "+g.g,580,258);x.textAlign="left";
+  x.fillStyle=col.mute;x.font="400 18px Sarabun,'Microsoft YaHei',sans-serif";
+  x.fillText((FC_SCOPE[fcQ.scope]||fcQ.scope)+" · 认识 "+ok+" / "+n+" 题",60,352);
+  const cells=[["连续学习",streak+" 天"],["累计分钟",mins],["已掌握词",state.known.length+""]];
+  cells.forEach((c,i)=>{const px=60+i*215;rr(px,392,200,92,14);x.fillStyle="rgba(128,128,128,.08)";x.fill();
+    x.strokeStyle=col.line;x.stroke();
+    x.fillStyle=col.soft;x.font="800 34px Prompt,Sarabun,sans-serif";x.textAlign="center";x.fillText(c[1],px+100,436);
+    x.fillStyle=col.mute;x.font="400 14px Sarabun,'Microsoft YaHei',sans-serif";x.fillText(c[0],px+100,464);x.textAlign="left";});
+  V.forEach((d,i)=>{const y=540+i*58;
+    x.fillStyle=col.ink;x.font="600 18px Sarabun,'Microsoft YaHei',sans-serif";x.fillText(d.n,60,y+16);
+    rr(130,y+2,420,16,8);x.fillStyle="rgba(128,128,128,.12)";x.fill();
+    if(d.v>0){rr(130,y+2,Math.max(10,420*d.v),16,8);x.fillStyle=i===0?col.gold:col.jade;x.fill();}
+    x.fillStyle=col.mute;x.font="400 15px Sarabun,sans-serif";x.textAlign="right";x.fillText(Math.round(d.v*100)+"%",690,y+16);x.textAlign="left";});
+  x.fillStyle=col.ink;x.font="600 17px Sarabun,'Microsoft YaHei',sans-serif";
+  x.fillText(badges.length?"已解锁徽章："+badges.slice(-4).map(b=>b.i+" "+b.n).join(" · "):"徽章还在路上，先来一轮？",60,822);
+  x.strokeStyle=col.line;x.beginPath();x.moveTo(60,868);x.lineTo(690,868);x.stroke();
+  x.fillStyle=col.mute;x.font="400 15px Sarabun,'Microsoft YaHei',sans-serif";
+  x.fillText("shixiaoying318.github.io/thai-learning",60,906);
+  x.textAlign="right";x.fillText("一起来学泰语 · 本卡由面板生成",690,906);x.textAlign="left";
+  x.fillStyle=col.mute;x.font="400 13px Sarabun,'Microsoft YaHei',sans-serif";
+  x.fillText("字母=抽认平均认识率 · 组字/声调=组字练习通关率 · 词汇=词库掌握率",60,940);
+  return cv;
+}
+function shareOpen(){
+  if(!fcQ||!fcQ.done){showToast("先跑完一轮再分享");return;}
+  const cv=shareCanvas();
+  document.getElementById("shareImg").src=cv.toDataURL("image/png");
+  document.getElementById("shareMask").classList.add("on");
+}
+function shareClose(){document.getElementById("shareMask").classList.remove("on");}
+function shareDownload(){
+  const a=document.createElement("a");
+  a.href=document.getElementById("shareImg").src;
+  a.download="thai-score-"+todayStr()+".png";
+  document.body.appendChild(a);a.click();a.remove();
+  showToast("已保存成绩卡");
+}
+function shareCopy(){
+  const img=document.getElementById("shareImg");
+  const done=()=>showToast("已复制，去粘贴给朋友");
+  const fail=()=>showToast("这个浏览器不支持复制图片，改用「保存图片」");
+  try{
+    fetch(img.src).then(r=>r.blob()).then(b=>{
+      if(navigator.clipboard&&window.ClipboardItem)navigator.clipboard.write([new ClipboardItem({"image/png":b})]).then(done,fail);
+      else fail();
+    }).catch(fail);
+  }catch(e){fail();}
+}
 
 /* ================= 文章学习 ================= */
 /* 分级：0 初级 1 中级 2 高级 3 进阶 · 每级 10 篇泰国小朋友级短文
