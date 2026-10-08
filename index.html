@@ -166,6 +166,10 @@ section.on{display:block;animation:rise .35s ease both}
 
 /* ---------- log ---------- */
 .log-grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+/* 雷达图：SVG 走 CSS 变量，深浅主题自动跟色；窄屏竖排 */
+.radar-wrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.radar-side{flex:1;min-width:180px;font-size:13px;color:var(--ink);line-height:1.8}
+@media (max-width:760px){.radar-wrap{justify-content:center}.radar-side{min-width:100%;text-align:center}}
 .card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:20px}
 .card h2{font-size:17px;font-weight:800;margin-bottom:14px}
 .frow{display:flex;gap:10px;flex-wrap:wrap}
@@ -667,6 +671,10 @@ body.novar .vfonts{display:none}
 <section id="sec-log">
   <div class="log-grid">
     <div class="card">
+      <h2>掌握度雷达 <button class="infoBtn" onclick="openInfo('radar')" title="四个维度怎么算">!</button></h2>
+      <div id="radarBox"></div>
+    </div>
+    <div class="card">
       <h2>手动补记 <button class="infoBtn" onclick="openInfo('log')" title="自动计时规则与数据说明">!</button></h2>
       <div class="sub" style="margin:-6px 0 12px;font-size:12.5px;color:var(--mute);line-height:1.6">面板内的学习时间已经<b style="color:var(--jade)">自动计时</b>，不用手填——这里只补记<b style="color:var(--gold-soft)">面板外</b>的学习：看泰剧、看视频课、翻纸质书</div>
       <div class="frow">
@@ -1153,6 +1161,46 @@ function addEntry(){
   renderLog();refreshStats();
 }
 function delEntry(i){state.logs.splice(i,1);save();renderLog();refreshStats();}
+/* ---------- 掌握度雷达：四维能力分布，一眼看出偏科 ----------
+   字母 = 抽认卡历轮平均认识率；组字 = 关1–3 通关率；声调 = 关4 五调对战通关率；
+   词汇 = 词库掌握 / 150。全是已有数据的再加工，不新增任何埋点。 */
+function radarVals(){
+  const f=fcSt(),st=bdState();
+  const hist=f.hist.filter(x=>x.n>0);
+  const alpha=hist.length?hist.reduce((a,x)=>a+x.ok/x.n,0)/hist.length:0;
+  const Lv=id=>BLEV.find(x=>x.id===id);
+  const done=id=>{const L=Lv(id);return L?L.syl.filter(s=>st.solved[id+"|"+s[0]]).length:0;};
+  const tot=id=>{const L=Lv(id);return L?L.syl.length:0;};
+  const t13=tot("L1")+tot("L2")+tot("L3");
+  const sp=t13?(done("L1")+done("L2")+done("L3"))/t13:0;
+  const tn=tot("L4")?done("L4")/tot("L4"):0;
+  const vb=DECK.length?state.known.length/DECK.length:0;
+  return [{n:"字母",v:alpha,tip:"字母抽认 / 到期复习"},{n:"组字",v:sp,tip:"组字练习 关1–3"},
+          {n:"声调",v:tn,tip:"组字练习 关4 · 五调对战"},{n:"词汇",v:vb,tip:"词库标记掌握"}];
+}
+function renderRadar(){
+  const box=document.getElementById("radarBox");if(!box)return;
+  const V=radarVals(),cx=130,cy=118,R=76;
+  const pt=(v,i)=>{const a=-Math.PI/2+i*Math.PI/2;return [cx+R*v*Math.cos(a),cy+R*v*Math.sin(a)];};
+  const poly=vs=>vs.map((v,i)=>pt(v,i).map(n=>n.toFixed(1)).join(",")).join(" ");
+  const rings=[.25,.5,.75,1].map(p=>`<polygon points="${poly(V.map(()=>p))}" fill="none" stroke="var(--line)"/>`).join("");
+  const axes=V.map((d,i)=>{const p=pt(1,i);return `<line x1="${cx}" y1="${cy}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}" stroke="var(--line)"/>`;}).join("");
+  const shape=`<polygon points="${poly(V.map(d=>Math.max(.04,d.v)))}" fill="var(--gold-dim)" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round"/>`;
+  const dots=V.map((d,i)=>{const p=pt(Math.max(.04,d.v),i);return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="var(--gold)"/>`;}).join("");
+  /* 标签按轴固定偏移摆放：左右锚向内侧、上下留足边距，避免贴边被裁 */
+  const LP=[[cx,cy-R-26,"middle",15],[cx+R+12,cy-2,"start",15],[cx,cy+R+20,"middle",15],[cx-R-12,cy-2,"end",15]];
+  const labs=V.map((d,i)=>{const L=LP[i];
+    return `<text x="${L[0]}" y="${L[1]+4}" text-anchor="${L[2]}" fill="var(--ink)" font-size="12.5" font-weight="700">${d.n}</text>`+
+           `<text x="${L[0]}" y="${L[1]+4+L[3]}" text-anchor="${L[2]}" fill="var(--mute)" font-size="10.5">${Math.round(d.v*100)}%</text>`;}).join("");
+  const min=V.slice().sort((a,b)=>a.v-b.v)[0];
+  const zero=V.every(d=>d.v===0);
+  box.innerHTML=`<div class="radar-wrap">
+    <svg width="260" height="242" viewBox="0 0 260 242" role="img" aria-label="掌握度雷达图">${rings}${axes}${shape}${dots}${labs}</svg>
+    <div class="radar-side">${zero
+      ?`还没有数据：去跑一轮抽认、过一关组字、或标记几个掌握，雷达就会亮起来。`
+      :`最偏的一科是 <b style="color:var(--gold-soft)">${min.n}</b>（${Math.round(min.v*100)}%）→ 去「${min.tip}」练。<br>
+        <span style="color:var(--mute);font-size:11.5px;line-height:1.7">字母 = 抽认历轮平均认识率 · 组字 / 声调 = 组字练习通关率 · 词汇 = 词库掌握率</span>`}</div></div>`;
+}
 function renderLog(){
   const el=document.getElementById("entries");
   el.innerHTML=state.logs.length?state.logs.map((l,i)=>
@@ -1225,7 +1273,7 @@ function renderDeck(){
 function toggleKnown(w){
   const k=state.known.indexOf(w);
   k>=0?state.known.splice(k,1):state.known.push(w);
-  save();renderDeck();refreshStats();
+  save();renderDeck();refreshStats();renderRadar(); // 词汇维跟着掌握数走
 }
 /* 单词手写板：复用摹写弹窗（笔顺引擎已支持多字母词）· 认读 = 大字 + 读音 + 释义同屏 */
 function openWord(thai,rom,mean,pos,ex){
@@ -1637,6 +1685,9 @@ const INFO={
     <div class="isec"><h5>加班缓冲规则</h5>工作日被回归加班吃掉 → 当天 2 个视频挪到周末（周末 3h = 4 个视频量刚好塞下）；9/22 后还剩欠账 → 砍练习、保生词进库 + 课文跟读；连崩 3 天以上 → 来找我重排，别自己硬扛然后弃坑。</div>
     <div class="isec"><h5>弃坑悬崖预警</h5>字母和拼读规则是全程弃坑率最高的地方。觉得难受是正常的，所有人都一样——熬到 B1 能读课文就豁然开朗。难受的时候打开「学习记录」看看热力图上自己点亮的格子。</div>
     <div class="isec"><h5>每日保底</h5>冲刺期（至 9/30）工作日保底 = 2 个视频（约 50 分钟）；加班崩盘日保底 = 打开面板把「今日任务」做完（约 10 分钟），视频欠账挪周末补；冲刺结束后回到每日 15 分钟保底。保连续性 &gt; 保强度。</div>`},
+  radar:{title:"掌握度雷达 · 四个维度怎么算",html:`
+    <div class="isec"><h5>维度口径</h5><b>字母</b> = 抽认卡历轮认识率的平均（最近 12 轮）；<b>组字</b> = 组字练习关1–3 的音节通关率；<b>声调</b> = 关4「五调对战」通关率；<b>词汇</b> = 词库「标记掌握」数 / 150。全部是已有学习数据的再加工，不额外埋点。</div>
+    <div class="isec"><h5>怎么用</h5>雷达看的是<b>偏科</b>，不是总分：哪一维凹进去，下一步就练哪一块（图旁会直接给出去向）。四角都鼓之前，别急着加新内容——先把凹的那维填平。</div>`},
   log:{title:"学习记录 · 自动计时与数据说明",html:`
     <div class="isec"><h5>自动计时（iOS 图书式）</h5>打开页面<b>且有操作</b>就开始计时：点击 / 触摸 / 键盘 / 滚动 / 播放音频都算活跃。切后台、切标签页<b>立即暂停</b>；页面在前台但发呆超过 <b>3 分钟</b>也暂停（防止挂机灌水）；音频还在播（文章循环 / 发音）则继续计。数据<b>每 30 秒</b>写入本机，离开页面时立即保存；云端上传按<b>每 2 分钟</b>节流 + 退后台/关页时补传一次。开多个标签页时只有最近操作的那个计时，不会重复。</div>
     <div class="isec"><h5>手动补记</h5>面板外的学习（泰剧 / 视频课 / 纸质书）自动计不到，用上方表单补记。自动分钟 + 补记分钟会合并进：累计分钟、14 天柱状图、热力图、连续天数（每天合计 ≥15 分钟算 1 天）。</div>
@@ -2102,6 +2153,7 @@ function fcFinish(){
   save();
   fcRenderResult(g,rate,ok,n);
   checkBadges();
+  renderRadar(); // 本轮认识率进「字母」维
 }
 function fcRenderResult(g,rate,ok,n){
   const w=fcQ.wrong,inW=o=>w.indexOf(o)>=0;
@@ -2639,7 +2691,7 @@ function bdCheck(){
     prev.classList.remove("bad");prev.classList.add("ok");
     if(q.rnd){st.rnd.n++;st.rnd.ok++;}else{st.solved[q.key]=true;}
     trkCount("bd"); // 今日任务/徽章计数：组字答对
-    save();
+    save();renderRadar(); // 组字/声调维跟着通关数走
     ans.className="bd-ans on ok";
     ans.innerHTML=`✅ 拼对了！<b>${q.syl}</b> = ${q.c}（声母）+ ${BVMAP[q.v][1]}（元音 ${BVMAP[q.v][2]}）+ ${q.t==="m"?"不加声调符号":"อ"+BTMAP[q.t][2]+"（"+BTMAP[q.t][1]+"）"}${q.f?" + "+q.f+"（尾音）":""}<br>🔔 实际读 <b>${q.real}</b>${q.rom?" · "+q.rom:""}${q.cn&&q.cn!=="练读音节"?" · "+q.cn:""}`;
     document.querySelectorAll("#bdStage .bd-tile").forEach(t=>{t.disabled=true;});
@@ -2863,7 +2915,7 @@ function renderHeatmap(){
 }
 
 /* ================= 启动 ================= */
-function renderAll(){renderRoad();renderLog();renderDeck();renderAlpha();renderBuild();renderRead();refreshStats();tab(state.activeTab||"road");}
+function renderAll(){renderRoad();renderLog();renderDeck();renderAlpha();renderBuild();renderRead();refreshStats();renderRadar();tab(state.activeTab||"road");}
 document.getElementById("inDate").value=todayStr();
 if("speechSynthesis" in window)speechSynthesis.getVoices();
 applyTheme(); // 主题要在首帧前落地，避免深色闪一下再切浅色
