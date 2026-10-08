@@ -61,7 +61,13 @@ body.light .fc-go,body.light .bd-play{color:#20130a}
   cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
   transition:transform .15s,background .2s}
 .themeBtn:hover{transform:scale(1.08)}
-@media (max-width:640px){.themeBtn{top:10px;right:10px;width:38px;height:38px;font-size:17px}}
+/* 播放倍速钮：固定右上角、主题钮左侧。慢速听声调是泰语听力刚需 */
+.rateBtn{position:fixed;top:16px;right:66px;z-index:60;height:42px;padding:0 12px;border-radius:99px;
+  border:1px solid var(--line);background:var(--panel);color:var(--gold-soft);
+  font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s}
+.rateBtn:hover{transform:scale(1.06)}
+@media (max-width:640px){.themeBtn{top:10px;right:10px;width:38px;height:38px;font-size:17px}
+  .rateBtn{top:12px;right:54px;height:38px;font-size:11.5px;padding:0 9px}}
 /* 浅色下的半透明内衬：深色版用 rgba(0,0,0,.15~.35) 做内凹感，浅色换成暖棕浅内衬。
    弹窗黑幕(.pm-mask/.info-mask/.fc-mask)与 .pm-box 之外的遮罩保持深色，两主题一致。 */
 body.light .stat,body.light .sprint,body.light .entry,body.light .tc-task,
@@ -601,6 +607,7 @@ body.novar .vfonts{display:none}
 <div class="wrap">
 
 <header>
+  <button id="rateBtn" class="rateBtn" onclick="cycleRate()" title="播放倍速">语速 ×1</button>
   <button id="themeBtn" class="themeBtn" onclick="cycleTheme()" title="主题：跟随系统">🌓</button>
   <div class="brand">
     <div class="thai">เรียนไทย</div>
@@ -1388,6 +1395,23 @@ if(window.matchMedia){
   const onSys=()=>{if((state.theme||"auto")==="auto")applyTheme();};
   if(mq.addEventListener)mq.addEventListener("change",onSys);else if(mq.addListener)mq.addListener(onSys);
 }
+/* ============ 播放倍速：1 / 0.8 / 0.6 三档循环 ============
+   泰语是声调语言，常速听不清调值是新手的头号劝退点；慢放是最便宜的解药。
+   state.rate 持久化并随云同步；切换时对正在播放的音频即时生效。
+   覆盖全部四条出声路径：内嵌 blob / WebAudio 兜底 / 网络 TTS / 系统语音合成。 */
+const RATES=[1,0.8,0.6];
+function rateOf(){return RATES.indexOf(state.rate)>=0?state.rate:1;}
+function applyRateUI(){
+  const b=document.getElementById("rateBtn");
+  if(b){b.textContent="语速 ×"+rateOf();b.title="播放倍速 "+rateOf()+"x（点击切换；慢速适合听声调）";}
+}
+function cycleRate(){
+  state.rate=RATES[(RATES.indexOf(rateOf())+1)%RATES.length];
+  save();
+  if(curAudio){try{curAudio.playbackRate=state.rate;}catch(e){}}
+  applyRateUI();
+  showToast("语速 ×"+state.rate+(state.rate<1?" · 慢一点，声调才听得清":""));
+}
 /* 每格字体变体开关：只切 body 类，变体 DOM 一直在，开关即时生效不用重渲染 */
 function varsOn(){return state.vars!==false;}
 function applyVars(){
@@ -1426,6 +1450,7 @@ function playViaWebAudio(text,stop,onFail){
     for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
     ctx.decodeAudioData(arr.buffer.slice(0)).then(buf=>{
       const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);
+      src.playbackRate.value=rateOf(); // WebAudio 兜底路径同样吃倍速
       src.onended=stop;src.start(0);
     }).catch(()=>{showToast("音频解码失败，尝试网络回退");onFail();});
   }catch(e){showToast("播放出错："+e.message);onFail();}
@@ -1433,6 +1458,7 @@ function playViaWebAudio(text,stop,onFail){
 function playEmbedded(text,stop,onFail){
   try{
     const a=new Audio(embeddedUrl(text));curAudio=a;
+    a.playbackRate=rateOf();
     a.onended=()=>{clearTimeout(a._wd);stop();};
     a.onerror=()=>{clearTimeout(a._wd);playViaWebAudio(text,stop,onFail);};
     a.addEventListener("loadedmetadata",()=>clearTimeout(a._wd),{once:true});
@@ -1463,6 +1489,7 @@ function speak(text,btnId,onEnd){
     const tryUrl=i=>{
       if(i>=urls.length){localSpeak(text);setTimeout(stop,1800);return;}
       const a=new Audio(urls[i]);curAudio=a;
+      a.playbackRate=rateOf();
       a.onended=stop;a.onerror=()=>tryUrl(i+1);
       a.play().catch(()=>tryUrl(i+1));
     };
@@ -1481,7 +1508,7 @@ function speak(text,btnId,onEnd){
 }
 function localSpeak(text){
   if(!("speechSynthesis" in window))return;
-  const u=new SpeechSynthesisUtterance(text);u.lang="th-TH";
+  const u=new SpeechSynthesisUtterance(text);u.lang="th-TH";u.rate=rateOf();
   const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith("th"));
   if(v)u.voice=v;
   speechSynthesis.cancel();speechSynthesis.speak(u);
@@ -1839,6 +1866,13 @@ function openTVow(i){
    结算给认识率 + 熟悉度评分（S–E）+ 错题清单，并按辅音类别诊断「错集中在哪一组」。
    错题沉淀进薄弱池 state.fc.weak（答对抵消），下轮可直接只抽薄弱的。 */
 const FC_N=20;
+/* 出题字体：课本带圈（Mali）/ 社媒无圈（Noto Sans Thai）/ 混合随机。
+   用户痛点：抽认卡只用带圈手写体出题，练到 S 级到泰国 App / 社媒还是认不出——
+   练的和用的不是同一个字形。默认混合，两种都练。 */
+const FF_OPTS=[["book","课本带圈"],["phone","社媒无圈"],["mix","混合随机"]];
+const FF_CSS={book:VAR_ALL[0].css,phone:(VAR_FONTS.find(f=>f.k==="phone")||{css:"sans-serif"}).css};
+function ffOn(){const f=fcSt().font;return FF_OPTS.some(x=>x[0]===f)?f:"mix";}
+function fcPickFont(s){fcSt().font=s;save();if(s!=="book")loadVarFonts();fcRenderStart();}
 const FC_GRADES=[
   {min:95,g:"S",v:"字母关基本过了",t:"一眼就能叫出名字，可以安心往拼读规则和课文推进了。"},
   {min:85,g:"A",v:"很熟，只剩几个死角",t:"把下面错题各点开看一遍，明天再抽一轮就能稳到 S。"},
@@ -1910,6 +1944,9 @@ function fcRenderStart(){
       点 <b>✓ 认识</b> 闪一下答案继续。答完给认识率和熟悉度评分。</div>
     <div class="fc-scopes">${sc.map(x=>
       `<button class="chip ${fcScope===x[0]?"on":""}" onclick="fcPickScope('${x[0]}')">${x[1]}</button>`).join("")}</div>
+    <div class="fc-scopes" style="margin-top:9px">出题字体 ${FF_OPTS.map(x=>
+      `<button class="chip ${ffOn()===x[0]?"on":""}" onclick="fcPickFont('${x[0]}')"
+        title="${x[0]==="book"?"和课本、字帖一致的带圈手写体":x[0]==="phone"?"泰国 App / 社交媒体的主流写法，起笔小圆圈被省掉":"每题随机一种，两种字形都练到"}">${x[1]}</button>`).join("")}</div>
     <button class="fc-go" onclick="fcStart()">开始抽认 · ${n} 题</button>
     <div class="fc-last">${last
       ? `上一轮：${FC_SCOPE[last.s]||last.s} · 认识率 <b>${last.r}%</b>（${last.ok}/${last.n}）· 评分 <b>${last.g}</b> · ${last.d.slice(5).replace("-","/")}`
@@ -1924,6 +1961,11 @@ function fcStart(list){
   const pool=fcShuffle((list||fcPool(fcScope)).slice());
   if(!pool.length){showToast("这个范围里没有可抽的字母");return;}
   fcQ={scope:fcScope,q:pool.slice(0,Math.min(FC_N,pool.length)),idx:0,ok:0,wrong:[],lock:false,detail:false,done:false};
+  /* 出题字体在开局时定死到每题上：混合档随机、单档统一。
+     写在题对象上而不是渲染时现抽，撤销回退 / 重渲染时同一题字形不变 */
+  const ff=ffOn();
+  fcQ.q.forEach(o=>{o.ff=ff==="mix"?(Math.random()<.5?"book":"phone"):ff;});
+  if(ff!=="book")loadVarFonts(); // 无圈体是网络字体，开局就拉
   fcUndoStack.length=0; // 新一轮开始，撤销栈清空
   fcSt().scope=fcScope;save();
   fcRenderCard();
@@ -1937,7 +1979,7 @@ function fcRenderCard(){
       <button class="fc-undo" onclick="fcUndo()" title="撤销上一题作答，回到那一题重答（Backspace）"
         ${fcUndoStack.length?"":"disabled"}>↩</button></div>
     <div class="fc-stage"><span class="fc-type">${fa.type}</span>
-      <div class="fc-char" style="font-size:${fa.fs}px">${fa.ch}</div>
+      <div class="fc-char" style="font-size:${fa.fs}px;font-family:${FF_CSS[fcQ.q[fcQ.idx].ff||"book"]};">${fa.ch}</div>
       <div class="fc-ans" id="fcAns"></div></div>
     <div class="fc-btns">
       <button class="fc-no" id="fcNo" onclick="fcAnswer(false)">✕ 不认识</button>
@@ -2776,6 +2818,7 @@ function renderAll(){renderRoad();renderLog();renderDeck();renderAlpha();renderB
 document.getElementById("inDate").value=todayStr();
 if("speechSynthesis" in window)speechSynthesis.getVoices();
 applyTheme(); // 主题要在首帧前落地，避免深色闪一下再切浅色
+applyRateUI();
 renderAll();
 
 /* ============ 云同步层（未配置/未登录时自动降级为纯本地） ============ */
