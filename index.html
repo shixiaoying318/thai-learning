@@ -84,7 +84,7 @@ body{
 }
 h1,h2,h3,.num{font-family:'Prompt','Sarabun','Microsoft YaHei',sans-serif}
 /* 泰文字符统一手写带圈体（Mali），贴近课本手写；离线时回退 Windows 自带 Cordia New（同样带圈） */
-.thai{font-family:'Mali','Cordia New','Browallia New',sans-serif}
+.thai{font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif}
 .wrap{max-width:1060px;margin:0 auto;padding:28px 20px 80px}
 
 /* ---------- header ---------- */
@@ -250,7 +250,7 @@ input:focus,textarea:focus{border-color:var(--gold-dim)}
 .acard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 12px 11px;cursor:pointer;transition:all .15s;position:relative}
 .acard:hover{transform:translateY(-3px);border-color:var(--gold-dim);background:var(--panel2)}
 .acard.playing{border-color:var(--gold);box-shadow:0 0 14px rgba(242,169,59,.4)}
-.acard .big{font-size:30px;font-weight:800;color:var(--gold-soft);font-family:'Mali','Cordia New',sans-serif;overflow-wrap:anywhere}
+.acard .big{font-size:30px;font-weight:800;color:var(--gold-soft);font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;overflow-wrap:anywhere}
 .acard .meta{font-size:11.5px;color:var(--mute);margin-top:6px;line-height:1.6}
 .acard .meta .nm{color:var(--gold);font-size:13px}
 .acard .meta .cn{color:var(--ink)}
@@ -363,11 +363,11 @@ footer .thai{color:var(--gold-dim);font-size:14px}
     #fdfefe;
   overflow:hidden;touch-action:none}
 .pm-guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:128px;font-weight:800;
-  line-height:1;color:#1d3f6e;opacity:0;transition:opacity .6s;pointer-events:none;font-family:'Mali','Cordia New',sans-serif}
+  line-height:1;color:#1d3f6e;opacity:0;transition:opacity .6s;pointer-events:none;font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif}
 .pm-guide.on{opacity:.3}
 .pm-svg{position:absolute;inset:0;width:100%;height:100%;transition:opacity .6s;pointer-events:none}
 .pm-svg path{fill:none;stroke:#d4553f;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
-.pm-svg text{font-family:'Mali','Cordia New',sans-serif;font-size:56px;font-weight:800;fill:#d4553f}
+.pm-svg text{font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-size:56px;font-weight:800;fill:#d4553f}
 .pm-svg circle{fill:#d4553f}
 .pm-canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
 /* 书写弹窗整体禁止文本选中/长按呼叫菜单：手掌压在画布外的说明文字或边距上拖移时，
@@ -379,7 +379,7 @@ footer .thai{color:var(--gold-dim);font-size:14px}
   padding:7px 14px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .pm-btns button:hover{border-color:var(--gold-dim);color:var(--gold-soft)}
 .pm-right{flex:1;min-width:230px}
-.pm-char{font-size:46px;font-weight:800;color:var(--gold-soft);line-height:1.6;font-family:'Mali','Cordia New',sans-serif}
+.pm-char{font-size:46px;font-weight:800;color:var(--gold-soft);line-height:1.6;font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif}
 .pm-rom{color:var(--mute);font-size:13.5px;margin-top:2px}
 .pm-sec{margin-top:14px}
 .pm-sec h4{font-size:11.5px;letter-spacing:2px;color:var(--mute);font-weight:600;margin-bottom:6px}
@@ -402,14 +402,14 @@ footer .thai{color:var(--gold-dim);font-size:14px}
 .acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
 .acard2{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px;cursor:pointer;transition:all .15s}
 .acard2:hover{border-color:var(--gold-dim);transform:translateY(-2px)}
-.acard2 .t2{font-size:15px;font-weight:700;color:var(--gold-soft);font-family:'Mali','Cordia New',sans-serif}
+.acard2 .t2{font-size:15px;font-weight:700;color:var(--gold-soft);font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif}
 .acard2 .m2{font-size:12px;color:var(--mute);margin-top:5px}
 .artbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 16px}
 .artbar button{border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--ink);border-radius:99px;
   padding:7px 16px;font-size:13px;cursor:pointer;font-family:inherit}
 .artbar button:hover{border-color:var(--gold-dim);color:var(--gold-soft)}
 .artbar button.on{background:var(--gold);border-color:var(--gold);color:#2a1804;font-weight:700}
-.arttext{font-size:19px;line-height:2.35;color:var(--cream);font-family:'Mali','Cordia New',sans-serif;
+.arttext{font-size:19px;line-height:2.35;color:var(--cream);font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;
   border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:20px 24px}
 .artzh{margin-top:12px;font-size:14px;color:var(--mute);line-height:2;border:1px dashed var(--line);border-radius:10px;
   padding:10px 16px;background:rgba(0,0,0,.15)}
@@ -454,7 +454,7 @@ body.novar .vfonts{display:none}
 .bd-meta .cn{font-size:20px;font-weight:700;color:var(--cream)}
 .bd-meta .rom{font-size:14px;color:var(--ink);margin-top:4px}
 .bd-meta .spec{font-size:14px;color:var(--ink);margin-top:4px;line-height:1.8}
-.bd-meta .spec b{color:var(--gold-soft);font-family:'Mali','Cordia New',sans-serif;font-size:17px}
+.bd-meta .spec b{color:var(--gold-soft);font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-size:17px}
 .bd-meta .mini{margin-left:8px}
 .bd-ans{margin-top:14px;padding:10px 14px;border-radius:10px;font-size:13.5px;line-height:1.9;display:none}
 .bd-ans.on{display:block;border:1px dashed var(--gold-dim);background:rgba(0,0,0,.18)}
@@ -463,13 +463,13 @@ body.novar .vfonts{display:none}
 .bd-ans b{color:var(--gold-soft)}
 .bd-prev{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:16px}
 .bd-built{min-width:150px;padding:8px 26px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.25);
-  font-family:'Mali','Cordia New','Browallia New',sans-serif;font-size:52px;font-weight:800;color:var(--gold-soft);text-align:center;line-height:1.6}
+  font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-size:52px;font-weight:800;color:var(--gold-soft);text-align:center;line-height:1.6}
 .bd-built.ok{border-color:var(--jade);color:var(--c-ok);animation:bdpop .45s ease}
 .bd-built.bad{border-color:var(--crimson);animation:bdshake .4s ease}
 .bd-slots{display:flex;gap:8px;flex-wrap:wrap}
 .bd-slot{min-width:76px;padding:8px 10px;border-radius:10px;border:1px dashed var(--line);background:rgba(0,0,0,.15);text-align:center}
 .bd-slot .lab{font-size:10.5px;color:var(--mute)}
-.bd-slot .val{font-family:'Mali','Cordia New',sans-serif;font-size:23px;color:var(--cream);min-height:36px}
+.bd-slot .val{font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-size:23px;color:var(--cream);min-height:36px}
 .bd-slot.hit{border-color:var(--jade);border-style:solid}
 .bd-slot.miss{border-color:var(--crimson);border-style:solid}
 .bd-trays{margin-top:16px;display:grid;gap:13px}
@@ -479,7 +479,7 @@ body.novar .vfonts{display:none}
   padding:6px 13px;display:flex;flex-direction:column;align-items:center;gap:1px;transition:.12s;color:var(--cream)}
 .bd-tile:hover:not(:disabled){transform:translateY(-2px);border-color:var(--gold-dim)}
 .bd-tile:disabled{opacity:.45;cursor:default}
-.bd-tile .ch{font-family:'Mali','Cordia New',sans-serif;font-size:27px;font-weight:700;line-height:1.4}
+.bd-tile .ch{font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-size:27px;font-weight:700;line-height:1.4}
 .bd-tile .nm{font-size:10px;color:var(--mute);white-space:nowrap}
 .bd-tile.cons .ch{color:var(--c-ok)}.bd-tile.vow .ch{color:var(--gold-soft)}.bd-tile.ton .ch{color:var(--c-disp)}.bd-tile.fin .ch{color:var(--c-phone)}
 .bd-tile.on{border-color:var(--gold);background:var(--sel-grad);box-shadow:0 0 10px rgba(242,169,59,.25)}
@@ -548,7 +548,7 @@ body.novar .vfonts{display:none}
 .fc-stage{position:relative;border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:24px 12px 14px;margin-bottom:15px}
 .fc-type{position:absolute;top:9px;left:11px;font-size:10px;letter-spacing:1.5px;color:var(--mute);
   border:1px solid var(--line);border-radius:99px;padding:2px 9px}
-.fc-char{font-family:'Mali','Cordia New',sans-serif;font-weight:700;color:var(--gold-soft);line-height:1.45;
+.fc-char{font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-weight:700;color:var(--gold-soft);line-height:1.45;
   overflow-wrap:anywhere;animation:fcpop .2s ease both}
 @keyframes fcpop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 /* 答案区预留两行高度：作答前后卡片不跳位，按钮位置稳定 */
@@ -584,7 +584,7 @@ body.novar .vfonts{display:none}
 .fc-wrong h5{font-size:11px;letter-spacing:2px;color:var(--mute);font-weight:600;margin-bottom:9px}
 .fc-wlist{display:flex;flex-wrap:wrap;gap:7px}
 .fc-wi{border:1px solid rgba(212,85,63,.32);background:rgba(212,85,63,.09);border-radius:9px;padding:4px 9px;cursor:pointer;
-  font-family:'Mali','Cordia New',sans-serif;font-weight:700;font-size:21px;color:var(--c-disp);line-height:1.35;transition:all .15s}
+  font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif;font-weight:700;font-size:21px;color:var(--c-disp);line-height:1.35;transition:all .15s}
 .fc-wi:hover{border-color:var(--crimson);background:rgba(212,85,63,.18)}
 .fc-acts{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
 .fc-acts button{flex:1;min-width:118px;border-radius:99px;padding:12px 8px;font-size:13px;cursor:pointer;font-family:inherit;
@@ -1306,7 +1306,7 @@ const VAR_FONTS=[
    d:"海报 / 综艺字幕 / 招牌的装饰字，正文里基本碰不到"}
 ];
 /* 弹窗用：把卡片大字（课本手写体）也排进去，四款一屏对比 */
-const VAR_ALL=[{k:"book",t:"课本手写",cur:true,css:"'Mali','Cordia New',sans-serif",
+const VAR_ALL=[{k:"book",t:"课本手写",cur:true,css:"'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif",
   d:"本页面字母用的字体，和课本、字帖写法一致"}].concat(VAR_FONTS);
 const varHtml=ch=>VAR_FONTS.map(f=>
   `<span class="vfi ${f.k}" title="${f.n}：${f.d}"><span class="g" style="font-family:${f.css}">${ch}</span><span class="t">${f.t}</span></span>`).join("");
@@ -1824,7 +1824,9 @@ function openTCons(i){
 }
 function openTVow(i){
   const r=VOW[i],fs=vowForms(r[1]);
-  pmOpen({char:r[1],rom:"IPA "+r[3]+" · "+r[4],words:r[5],vars:fs.length?fs:[r[1]],
+  /* char 传合成形（占位连字符已换成 อ）：数据里 r[1] 是「-ำ」这种带占位的写法，
+     原先原样进主标题/四线格引导字，占位符和个别字形在部分设备字体子集里缺字就显豆腐块 */
+  pmOpen({char:fs[0]||r[1],rom:"IPA "+r[3]+" · "+r[4],words:r[5],vars:fs.length?fs:[r[1]],
     origin:(r[0]==="A"?"基础元音":"复合 / 特殊元音")+" · 写法围绕占位辅音 อ，短长成对记。"+
       (fs.length>1?"（下面对照把 "+fs.join(" 和 ")+" 两种写法都排出来了）":""),
     say:()=>speak(r[2])});
@@ -2121,7 +2123,7 @@ function renderRead(){
         <button onclick="stopArticle()">■ 停止</button>
         <span class="sub" style="margin:0 0 0 auto">${ART_LV[Math.floor(artCur/10)]} · 第 ${artCur%10+1} 篇</span>
       </div>
-      <h2 style="font-size:22px;color:var(--gold-soft);margin-bottom:10px;font-family:'Mali','Cordia New',sans-serif">${a.t}</h2>
+      <h2 style="font-size:22px;color:var(--gold-soft);margin-bottom:10px;font-family:'Mali','Sarabun','Noto Sans Thai Looped','Noto Sans Thai','Cordia New','Browallia New',sans-serif">${a.t}</h2>
       <div class="arttext">${artTextHtml(a)}</div>
       <div class="artzh">中文翻译 · ${a.zh||""}</div>
       <div class="sub" style="margin-top:12px">学习词：${a.w.map(p=>`<span class="rw" onclick="rwOpen('${p[0]}')">${p[0]}</span> ${p[1]}`).join(" · ")}</div>`;
